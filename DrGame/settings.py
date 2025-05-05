@@ -39,13 +39,15 @@ INSTALLED_APPS = [
     'accounts',
     'employees',
     'storage',
-    'accounting',
+    'payments',
     'home',
     'customers',
     # third-party apps
     'rest_framework',
     'drf_spectacular',
 ]
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
