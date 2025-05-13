@@ -78,3 +78,9 @@ class GameImageAdmin(admin.ModelAdmin):
     class Media:
         fields = '__all__'
         search_fields = '__all__'
+
+@admin.register(models.OrderProduct)
+class OrderProductAdmin(admin.ModelAdmin):
+    class Media:
+        fields = '__all__'
+        search_fields = '__all__'

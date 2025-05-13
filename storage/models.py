@@ -1,5 +1,7 @@
 from django.db import models
 
+from customers.models import Customer
+
 
 # Create your models here.
 
@@ -136,3 +138,16 @@ class SonyAccountGame(models.Model):
 
     def __str__(self):
         return f"{self.sony_account} - {self.game}"
+
+class OrderProduct(models.Model):
+    owner = models.OneToOneField(Customer, on_delete=models.CASCADE, blank=True, null=True)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    brand = models.CharField(max_length=100, choices=(
+        ('Sony', 'Sony'),
+        ('X-Box', 'X-Box'),
+        ('Nintendo', 'Nintendo'),
+    ), blank=True, null=True)
+    model = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.title + ' ' + self.owner.full_name

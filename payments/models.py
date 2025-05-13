@@ -1,9 +1,11 @@
 from django.db import models
+from storage.models import OrderProduct
 from accounts.models import CustomUser
 from customers.models import Customer
 
 
 # Create your models here.
+
 
 class OrderType(models.Model):
     title = models.CharField(max_length=100, null=True)
@@ -19,6 +21,7 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
+    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -40,6 +43,9 @@ class GameOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
+    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
+    games_count = models.IntegerField(default=0, null=True, blank=True)
+    selected_games_count = models.IntegerField(default=0, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -61,6 +67,7 @@ class RepairOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
+    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
