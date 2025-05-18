@@ -7,6 +7,7 @@ from accounts.models import CustomUser
 class EmployeeRole(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=5000)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -27,6 +28,7 @@ class Employee(models.Model):
         ('Commission', 'پورسانت'),
         ('Fixed salary', 'حقوق ثابت')
     ), null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -41,6 +43,7 @@ class Repairman(models.Model):
     last_name = models.CharField(max_length=100, null=True)
     national_code = models.CharField(max_length=10, null=True)
     balance = models.FloatField(null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

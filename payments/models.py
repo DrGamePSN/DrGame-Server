@@ -1,15 +1,15 @@
 from django.db import models
-from storage.models import OrderProduct
+from storage.models import CustomerConsole
 from accounts.models import CustomUser
 from customers.models import Customer
 
 
 # Create your models here.
 
-
 class OrderType(models.Model):
     title = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -21,7 +21,8 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
-    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -32,6 +33,7 @@ class Order(models.Model):
 class GameOrderType(models.Model):
     title = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -43,9 +45,10 @@ class GameOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
-    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
     games_count = models.IntegerField(default=0, null=True, blank=True)
     selected_games_count = models.IntegerField(default=0, null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -56,6 +59,7 @@ class GameOrder(models.Model):
 class RepairOrderType(models.Model):
     title = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -67,7 +71,8 @@ class RepairOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
-    product = models.ForeignKey(OrderProduct, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -78,6 +83,7 @@ class RepairOrder(models.Model):
 class TransactionType(models.Model):
     title = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -100,6 +106,7 @@ class Transaction(models.Model):
     repair_order = models.ForeignKey(RepairOrder, on_delete=models.SET_NULL, null=True, related_name='repair_order')
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, related_name='order')
     description = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
