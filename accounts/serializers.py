@@ -109,7 +109,6 @@ class SonyAccountSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='title',
-        source='games'
     )
     status = serializers.StringRelatedField()
     bank_account = serializers.StringRelatedField()
