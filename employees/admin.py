@@ -22,3 +22,17 @@ class RepairmanAdmin(admin.ModelAdmin):
     class Meta:
         fields = '__all__'
         search_fields = '__all__'
+
+
+@admin.register(models.EmployeeFile)
+class EmployeeFileAdmin(admin.ModelAdmin):
+    class Meta:
+        fields = '__all__'
+        search_fields = '__all__'
+
+
+@admin.register(models.EmployeeTask)
+class EmployeeTaskAdmin(admin.ModelAdmin):
+    class Meta:
+        fields = '__all__'
+        search_fields = '__all__'

@@ -1,13 +1,16 @@
 from rest_framework import generics
 
 from accounts.serializers import EmployeeListSerializer, SonyAccountSerializer, ProductCategorySerializer, \
-    ProductSerializer, EmployeeSerializer, RepairmanSerializer, CustomerSerializer, BusinessCustomerSerializer
+    ProductSerializer, EmployeeSerializer, RepairmanSerializer, CustomerSerializer, BusinessCustomerSerializer, \
+    EmployeeCreateSerializer, EmployeeRoleAddSerializer, ProductAddSerializer, ProductColorSerializer, \
+    ProductCompanySerializer, OrderSerializer
 from customers.models import Customer, BusinessCustomer
-from employees.models import Employee, Repairman
-from payments.models import Transaction, TransactionType
-from storage.models import SonyAccount, ProductCategory
+from employees.models import Employee, Repairman, EmployeeRole
+from payments.models import Transaction, TransactionType, Order
+from storage.models import SonyAccount, ProductCategory, ProductColor, ProductCompany
 
 
+# get method api list
 class EmployeeListAPIView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeListSerializer
@@ -29,23 +32,29 @@ class RepairmanDetailAPIView(generics.RetrieveAPIView):
     serializer_class = RepairmanSerializer
     lookup_field = 'pk'
 
+
 class CustomerListAPIView(generics.ListAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
 
 class CustomerDetailAPIView(generics.RetrieveAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     lookup_field = 'pk'
 
+
 class BusinessCustomerListAPIView(generics.ListAPIView):
     queryset = BusinessCustomer.objects.all()
     serializer_class = BusinessCustomerSerializer
+
 
 class BusinessCustomerDetailAPIView(generics.RetrieveAPIView):
     queryset = BusinessCustomer.objects.all()
     serializer_class = BusinessCustomerSerializer
     lookup_field = 'pk'
+
+
 class SonyAccountListAPIView(generics.ListAPIView):
     queryset = SonyAccount.objects.all()
     serializer_class = SonyAccountSerializer
@@ -62,9 +71,30 @@ class ProductCategoryListAPIView(generics.ListAPIView):
     serializer_class = ProductCategorySerializer
 
 
+class ProductColorListAPIView(generics.ListAPIView):
+    queryset = ProductColor.objects.all()
+    serializer_class = ProductColorSerializer
+
+
+class ProductCompanyListAPIView(generics.ListAPIView):
+    queryset = ProductCompany.objects.all()
+    serializer_class = ProductCompanySerializer
+
+
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = ProductCategory.objects.all()
     serializer_class = ProductSerializer
+    lookup_field = 'pk'
+
+
+class OrderListAPIView(generics.ListAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+class OrderDetailAPIView(generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
     lookup_field = 'pk'
 
 
@@ -77,3 +107,39 @@ class TransactionDetailAPIView(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'pk'
+
+
+# create method api list
+class EmployeeRoleAddAPIView(generics.CreateAPIView):
+    queryset = EmployeeRole.objects.all()
+    serializer_class = EmployeeRoleAddSerializer
+
+
+class EmployeeAddAPIView(generics.CreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeCreateSerializer
+
+
+class RepairmanAddAPIView(generics.CreateAPIView):
+    # قابل ساخت با پنل پیامکی
+    pass
+
+
+class CustomerAddAPIView(generics.CreateAPIView):
+    # قابل ساخت با پنل پیامکی
+    pass
+
+
+class BusinessCustomerAddAPIView(generics.CreateAPIView):
+    # قابل ساخت با پنل پیامکی
+    pass
+
+
+class SonyAccountAddAPIView(generics.CreateAPIView):
+    queryset = SonyAccount.objects.all()
+    serializer_class = SonyAccountSerializer
+
+
+class ProductAddAPIView(generics.CreateAPIView):
+    queryset = ProductCategory.objects.all()
+    serializer_class = ProductAddSerializer

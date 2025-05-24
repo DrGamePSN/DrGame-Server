@@ -98,7 +98,11 @@ WSGI_APPLICATION = 'DrGame.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
+# media root
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
+# liara bucket settings
 LIARA_ENDPOINT = os.getenv("LIARA_ENDPOINT")
 LIARA_BUCKET_NAME = os.getenv("LIARA_BUCKET_NAME")
 LIARA_ACCESS_KEY = os.getenv("LIARA_ACCESS_KEY")

@@ -1,3 +1,5 @@
+from random import random
+
 from rest_framework import serializers
 
 from accounts.models import CustomUser
@@ -7,6 +9,7 @@ from payments.models import GameOrder, RepairOrder, Order, Transaction, Transact
 from storage.models import SonyAccount, ProductCategory, Product, ProductCompany, ProductColor, ProductImage
 
 
+# read serializers
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
@@ -205,7 +208,7 @@ class RepairOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ['id']  # فقط ID، در صورت نیاز می‌توانید فیلدهای بیشتری اضافه کنید
+        fields = '__all__'
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -248,3 +251,74 @@ class TransactionTypeSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at'
         ]
+
+
+# create serializers
+class EmployeeRoleAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeRole
+        fields = "__all__"
+
+
+class CustomUserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['phone', 'is_active', 'is_staff', 'is_superuser']
+        extra_kwargs = {
+            'is_active': {'default': True},
+            'is_staff': {'default': False},
+            'is_superuser': {'default': False},
+        }
+
+    def create(self, validated_data):
+        phone = validated_data.get('phone')
+        user = CustomUser.objects.create_user(
+            phone=phone,
+            **{k: v for k, v in validated_data.items() if k not in ['phone']}
+        )
+        return user
+
+
+class EmployeeCreateSerializer(serializers.ModelSerializer):
+    phone = serializers.CharField(write_only=True)  # فقط شماره تلفن دریافت می‌شود
+
+    class Meta:
+        model = Employee
+        fields = [
+            'phone', 'role', 'profile_picture', 'first_name', 'last_name',
+            'national_code', 'employee_id', 'balance', 'income_type', 'is_deleted'
+        ]
+        extra_kwargs = {
+            'is_deleted': {'default': False},
+            'balance': {'default': 0.0},
+        }
+
+    def validate_phone(self, value):
+        # اعتبارسنجی شماره تلفن
+        if CustomUser.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("کاربری با این شماره تلفن قبلاً ثبت شده است.")
+        if len(value) != 11 or not value.isdigit():
+            raise serializers.ValidationError("شماره تلفن باید 11 رقم باشد.")
+        return value
+
+    def create(self, validated_data):
+        # استخراج شماره تلفن و حذف آن از داده‌ها
+        phone = validated_data.pop('phone')
+        # ایجاد کاربر با شماره تلفن
+        user = CustomUser.objects.create_user(phone=phone)
+        user.save()
+        # ایجاد کارمند با کاربر ساخته‌شده
+        employee = Employee.objects.create(user=user, **validated_data)
+        return employee
+
+
+class SonyAccountAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SonyAccount
+        fields = ('username', 'password')
+
+
+class ProductAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
