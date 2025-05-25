@@ -83,11 +83,11 @@ class CartItemUpdateAPIView(generics.UpdateAPIView):
         cart = get_object_or_404(Cart, id=id)
         try:
             cart_item = CartItem.objects.get(cart=cart, pk=pk)
-            serializer = self.serializer_class(cart_item, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            updated_serializer = self.serializer_class(cart_item, data=request.data)
+            updated_serializer.is_valid(raise_exception=True)
+            updated_item = updated_serializer.save()
+            serializer = CartItemSerializer(updated_item)
             return Response(serializer.data)
 
         except CartItem.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-# موقع سیو سریالایزر تغییر کنه.
