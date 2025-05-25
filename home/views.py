@@ -40,18 +40,18 @@ class CartDeleteAPIView(generics.DestroyAPIView):
 
 class CartItemListAPIView(generics.ListAPIView):
     serializer_class = CartItemSerializer
-    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+    queryset = CartItem.objects.select_related('product__color', 'cart').filter(is_deleted=False).all()
 
     def get(self, request, id):
         cart = get_object_or_404(Cart, id=id)
-        cart_item = CartItem.objects.filter(cart=cart, is_deleted=False).all()
-        serializer = self.serializer_class(cart_item, many=True)
+        cart_items = CartItem.objects.filter(cart=cart, is_deleted=False).all()
+        serializer = self.serializer_class(cart_items, many=True)
         return Response(serializer.data)
 
 
 class CartItemDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartItemSerializer
-    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+    queryset = CartItem.objects.select_related('product__color', 'cart').filter(is_deleted=False).all()
 
     def get(self, request, id, pk):
         cart = get_object_or_404(Cart, id=id)
@@ -62,21 +62,19 @@ class CartItemDetailAPIView(generics.RetrieveAPIView):
 
 class CartItemAddCreateAPIView(generics.CreateAPIView):
     serializer_class = AddCartItemSerializer
-    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+    queryset = CartItem.objects.select_related('product__color', 'cart').filter(is_deleted=False).all()
 
     def post(self, request, id):
         cart = get_object_or_404(Cart.objects.filter(is_deleted=False), id=id)
-        serializer = self.serializer_class(data=request.data, context={'cart': cart})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        created_serializer = self.serializer_class(data=request.data, context={'cart': cart})
+        created_serializer.is_valid(raise_exception=True)
+        created_item = created_serializer.save()
+        serializer = CartItemSerializer(created_item)
         return Response(serializer.data)
 
 
-# موقع سیو سریالایزر تغییر کنه.
-
-
 class CartItemUpdateAPIView(generics.UpdateAPIView):
-    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+    queryset = CartItem.objects.select_related('product__color', 'cart').filter(is_deleted=False).all()
     serializer_class = UpdateCartItemSerializer
 
     def put(self, request, id, pk):
