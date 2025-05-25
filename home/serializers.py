@@ -10,6 +10,28 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', ]
 
 
+class ProductColorCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductColor
+        fields = ['title']
+
+
+class ProductCartItemSerializer(serializers.ModelSerializer):
+    color = ProductColorCartItemSerializer()
+
+    class Meta:
+        model = Product
+        fields = ['title', 'color', 'price']
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = ProductCartItemSerializer()
+
+    class Meta:
+        model = CartItem
+        fields = ['cart', 'product', 'quantity', 'updated_at']
+
+
 class AddCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
@@ -20,7 +42,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         product = validated_data.get('product')
         quantity = validated_data.get('quantity')
         try:
-            cart_item = CartItem.objects.get(product=product, cart = cart)
+            cart_item = CartItem.objects.get(product=product, cart=cart)
             cart_item.quantity += quantity
             cart_item.save()
         except CartItem.DoesNotExist:
@@ -28,3 +50,9 @@ class AddCartItemSerializer(serializers.ModelSerializer):
 
         self.instance = cart_item
         return cart_item
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['quantity', ]

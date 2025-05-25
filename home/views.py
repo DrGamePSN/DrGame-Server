@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CartSerializer, AddCartItemSerializer
+from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer
 from .models import Cart, CartItem
 
 
@@ -37,9 +37,21 @@ class CartDeleteAPIView(generics.DestroyAPIView):
 
 
 # cart-item
+
+class CartItemDetailAPIView(generics.RetrieveAPIView):
+    serializer_class = CartItemSerializer
+    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+
+    def get(self, request, id, pk):
+        cart = get_object_or_404(Cart, id=id)
+        cart_item = CartItem.objects.get(cart=cart, pk=pk)
+        serializer = self.serializer_class(cart_item)
+        return Response(serializer.data)
+
+
 class CartItemAddCreateAPIView(generics.CreateAPIView):
     serializer_class = AddCartItemSerializer
-    queryset = CartItem.objects.select_related('product', 'cart', 'colors').filter(is_deleted=False).all()
+    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
 
     def post(self, request, id):
         cart = get_object_or_404(Cart.objects.filter(is_deleted=False), id=id)
@@ -47,6 +59,24 @@ class CartItemAddCreateAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    # def get_serializer_context(self, id):
-    #     cart = get_object_or_404(Cart.objects.filter(is_deleted=False), id=id)
-    #     return {'cart': cart}
+
+
+# موقع سیو سریالایزر تغییر کنه.
+
+
+class CartItemUpdateAPIView(generics.UpdateAPIView):
+    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+    serializer_class = UpdateCartItemSerializer
+
+    def put(self, request, id, pk):
+        cart = get_object_or_404(Cart, id=id)
+        try:
+            cart_item = CartItem.objects.get(cart=cart, pk=pk)
+            serializer = self.serializer_class(cart_item, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+        except CartItem.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+# موقع سیو سریالایزر تغییر کنه.

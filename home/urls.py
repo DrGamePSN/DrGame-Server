@@ -5,9 +5,12 @@ from . import views
 urlpatterns = [
     # retrieve urls
     path('cart/detail/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
+    path('cart/<uuid:id>/items/<int:pk>/', views.CartItemDetailAPIView.as_view(), name='cart-item-detail'),
     # create urls
     path('cart/add/', views.CartCreateAPIView.as_view(), name='cart-create'),
     path('cart/<uuid:id>/items/add/', views.CartItemAddCreateAPIView.as_view(), name='cart-item-create'),
+    # update urls
+    path('cart/<uuid:id>/items/<int:pk>/update/', views.CartItemUpdateAPIView.as_view(), name='cart-item-update'),
     # delete urls
     path('cart/delete/<uuid:id>/', views.CartDeleteAPIView.as_view(), name='cart-delete')
 
