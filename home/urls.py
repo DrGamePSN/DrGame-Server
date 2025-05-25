@@ -6,7 +6,7 @@ urlpatterns = [
     #list urls
     path('cart/<uuid:id>/items/',views.CartItemListAPIView.as_view(),name = 'cart-item-list'),
     # retrieve urls
-    path('cart/detail/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
+    path('cart/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
     path('cart/<uuid:id>/items/<int:pk>/', views.CartItemDetailAPIView.as_view(), name='cart-item-detail'),
     # create urls
     path('cart/add/', views.CartCreateAPIView.as_view(), name='cart-create'),

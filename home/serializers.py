@@ -3,13 +3,6 @@ from .models import Cart, CartItem
 from storage.models import Product, ProductColor
 
 
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = ['id']
-        read_only_fields = ['id', ]
-
-
 class ProductColorCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColor
@@ -30,7 +23,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['product', 'quantity', 'total', 'updated_at']
+        fields = ['product', 'quantity', 'total', ]
 
     def get_total(self, obj):
         return obj.total_item_price
@@ -60,3 +53,16 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['quantity', ]
+
+
+class CartSerializer(serializers.ModelSerializer):
+    cart_items = CartItemSerializer(many=True)
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'cart_items', 'total_price']
+        read_only_fields = ['id', ]
+
+    def get_total_price(self, obj):
+        return obj.total_price

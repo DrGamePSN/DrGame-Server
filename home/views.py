@@ -8,7 +8,7 @@ from .models import Cart, CartItem
 
 class CartDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
-    queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items').all()
+    queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
     lookup_field = 'id'
 
     def get(self, request, id):
