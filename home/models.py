@@ -24,3 +24,10 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = [['cart', 'product']]
+
+    @property
+    def total_item_price(self):
+        return self.quantity * self.product.price
+
+    def __str__(self):
+        return f'{self.product} : {self.quantity}'

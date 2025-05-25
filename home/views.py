@@ -38,13 +38,24 @@ class CartDeleteAPIView(generics.DestroyAPIView):
 
 # cart-item
 
+class CartItemListAPIView(generics.ListAPIView):
+    serializer_class = CartItemSerializer
+    queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
+
+    def get(self, request, id):
+        cart = get_object_or_404(Cart, id=id)
+        cart_item = CartItem.objects.filter(cart=cart, is_deleted=False).all()
+        serializer = self.serializer_class(cart_item, many=True)
+        return Response(serializer.data)
+
+
 class CartItemDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartItemSerializer
     queryset = CartItem.objects.select_related('product', 'cart').filter(is_deleted=False).all()
 
     def get(self, request, id, pk):
         cart = get_object_or_404(Cart, id=id)
-        cart_item = CartItem.objects.get(cart=cart, pk=pk)
+        cart_item = CartItem.objects.get(cart=cart, pk=pk, is_deleted=False)
         serializer = self.serializer_class(cart_item)
         return Response(serializer.data)
 
