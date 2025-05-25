@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # local apps
     'accounts',
+    'management',
     'employees',
     'storage',
     'payments',
@@ -48,6 +50,8 @@ INSTALLED_APPS = [
     'customers',
     # third-party apps
     'rest_framework',
+    'rest_framework_simplejwt',
+    'django_ratelimit',
     'drf_spectacular',
     'storages',
 ]
@@ -66,6 +70,15 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '2000/hour',
+    },
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'DrGame APIs',
@@ -73,6 +86,26 @@ SPECTACULAR_SETTINGS = {
     'VERSION': 'v1',
     'SERVE_INCLUDE_SCHEMA': True,
 }
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'AUTH_COOKIE': 'access_token',
+    'AUTH_COOKIE_REFRESH': 'refresh_token',
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_SECURE': True,
+    'AUTH_COOKIE_SAMESITE': 'Strict',
+}
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # یا آدرس سرور Redis شما
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+
 ROOT_URLCONF = 'DrGame.urls'
 
 TEMPLATES = [

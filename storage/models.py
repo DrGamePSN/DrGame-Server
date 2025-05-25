@@ -136,7 +136,6 @@ class SonyAccount(models.Model):
 class SonyAccountGame(models.Model):
     sony_account = models.ForeignKey(SonyAccount, on_delete=models.CASCADE, related_name='account_games')
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='game_accounts')
-    added_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

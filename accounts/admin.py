@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, APIKey
+
 
 # Register your models here.
 @admin.register(CustomUser)
@@ -16,8 +17,15 @@ class CustomUserAdmin(UserAdmin):
         (None, {
             'classes': ('wide',),
             'fields': ('phone', 'password1', 'password2', 'is_staff', 'is_active', 'is_superuser')}
-        ),
+         ),
     )
     search_fields = ('phone',)
     ordering = ('phone',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ('client_name', 'key', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('client_name', 'key')

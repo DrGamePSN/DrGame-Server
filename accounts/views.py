@@ -1,145 +1,191 @@
-from rest_framework import generics
+# your_app/views.py
+import secrets
+from datetime import timedelta
+from django.contrib.auth import authenticate
+from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.serializers import EmployeeListSerializer, SonyAccountSerializer, ProductCategorySerializer, \
-    ProductSerializer, EmployeeSerializer, RepairmanSerializer, CustomerSerializer, BusinessCustomerSerializer, \
-    EmployeeCreateSerializer, EmployeeRoleAddSerializer, ProductAddSerializer, ProductColorSerializer, \
-    ProductCompanySerializer, OrderSerializer
-from customers.models import Customer, BusinessCustomer
-from employees.models import Employee, Repairman, EmployeeRole
-from payments.models import Transaction, TransactionType, Order
-from storage.models import SonyAccount, ProductCategory, ProductColor, ProductCompany
-
-
-# get method api list
-class EmployeeListAPIView(generics.ListAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeListSerializer
+from .models import CustomUser, OTP, APIKey
 
 
-class EmployeeDetailAPIView(generics.RetrieveAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    lookup_field = 'employee_id'
+class CreateAPIKeyView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
+    def post(self, request):
+        phone = request.data.get('phone')
+        password = request.data.get('password')
+        client_name = request.data.get('client_name')
+
+        if not phone or not password or not client_name:
+            return Response(
+                {"error": "شماره موبایل، رمز عبور و نام کلاینت الزامی است"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = authenticate(phone=phone, password=password)
+        if not user or not user.is_superuser:
+            return Response(
+                {"error": "فقط سوپریوزرها می‌توانند API Key تولید کنند"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # تولید API Key
+        api_key = APIKey.objects.create(client_name=client_name)
+        # کلید به‌صورت خودکار در مدل APIKey با متد save تولید می‌شه
+
+        # پاسخ
+        return Response(
+            {
+                "api_key": api_key.key,
+                "client_name": api_key.client_name
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    def get(self, request):
+        return Response(
+            {"error": "فقط متد POST پشتیبانی می‌شود"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
 
-class RepairmanListAPIView(generics.ListAPIView):
-    queryset = Repairman.objects.all()
-    serializer_class = RepairmanSerializer
+class RequestOTPView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
+    @ratelimit(key='post:phone', rate='4/h', method='POST')
+    def post(self, request):
+        api_key = request.headers.get('X-API-Key')
+        if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
+            return Response(
+                {"error": "API Key نامعتبر است"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        phone = request.data.get('phone')
+        if not phone:
+            return Response(
+                {"error": "شماره موبایل الزامی است"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        was_limited = getattr(request, 'limited', False)
+        if was_limited:
+            return Response(
+                {"error": "بیش از 4 درخواست در ساعت مجاز نیست"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        user, created = CustomUser.objects.get_or_create(phone=phone, defaults={'is_active': True})
+
+        otp_code = str(secrets.randbelow(100000000)).zfill(8)  # کد 8 رقمی
+        expires_at = timezone.now() + timedelta(minutes=2)
+        OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
+
+        print(f"OTP for {phone}: {otp_code}")
+
+        return Response(
+            {"message": "لطفاً کد OTP را وارد کنید"},
+            status=status.HTTP_200_OK
+        )
 
 
-class RepairmanDetailAPIView(generics.RetrieveAPIView):
-    queryset = Repairman.objects.all()
-    serializer_class = RepairmanSerializer
-    lookup_field = 'pk'
+class VerifyOTPView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
+    def post(self, request):
+        # چک کردن API Key
+        api_key = request.headers.get('X-API-Key')
+        if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
+            return Response(
+                {"error": "API Key نامعتبر است"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # گرفتن داده‌ها
+        phone = request.data.get('phone')
+        code = request.data.get('code')
+        if not phone or not code:
+            return Response(
+                {"error": "شماره موبایل و کد OTP الزامی است"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # پیدا کردن کاربر
+        try:
+            user = CustomUser.objects.get(phone=phone)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {"error": "کاربر یافت نشد"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # چک کردن OTP
+        try:
+            otp = OTP.objects.filter(user=user).latest('created_at')
+            if otp.code != code or not otp.is_valid():
+                return Response(
+                    {"error": "کد OTP نامعتبر یا منقضی شده است"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except OTP.DoesNotExist:
+            return Response(
+                {"error": "کد OTP یافت نشد"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # تولید توکن‌های JWT
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
+        # ذخیره توکن‌ها در Cookie
+        response = Response(
+            {"message": "ورود موفق"},
+            status=status.HTTP_200_OK
+        )
+        response.set_cookie(
+            key='access_token',
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+            max_age=3600  # 1 ساعت
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+            max_age=432000  # 5 روز
+        )
+
+        return response
 
 
-class CustomerListAPIView(generics.ListAPIView):
-    queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+class LogoutView(APIView):
+    throttle_classes = [AnonRateThrottle]
 
+    def post(self, request):
+        # چک کردن API Key
+        api_key = request.headers.get('X-API-Key')
+        if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
+            return Response(
+                {"error": "API Key نامعتبر است"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-class CustomerDetailAPIView(generics.RetrieveAPIView):
-    queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
-    lookup_field = 'pk'
+        # پاک کردن کوکی‌ها
+        response = Response(
+            {"message": "خروج موفق"},
+            status=status.HTTP_200_OK
+        )
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
 
-
-class BusinessCustomerListAPIView(generics.ListAPIView):
-    queryset = BusinessCustomer.objects.all()
-    serializer_class = BusinessCustomerSerializer
-
-
-class BusinessCustomerDetailAPIView(generics.RetrieveAPIView):
-    queryset = BusinessCustomer.objects.all()
-    serializer_class = BusinessCustomerSerializer
-    lookup_field = 'pk'
-
-
-class SonyAccountListAPIView(generics.ListAPIView):
-    queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
-
-
-class SonyAccountDetailAPIView(generics.RetrieveAPIView):
-    queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
-    lookup_field = 'pk'
-
-
-class ProductCategoryListAPIView(generics.ListAPIView):
-    queryset = ProductCategory.objects.all()
-    serializer_class = ProductCategorySerializer
-
-
-class ProductColorListAPIView(generics.ListAPIView):
-    queryset = ProductColor.objects.all()
-    serializer_class = ProductColorSerializer
-
-
-class ProductCompanyListAPIView(generics.ListAPIView):
-    queryset = ProductCompany.objects.all()
-    serializer_class = ProductCompanySerializer
-
-
-class ProductDetailAPIView(generics.RetrieveAPIView):
-    queryset = ProductCategory.objects.all()
-    serializer_class = ProductSerializer
-    lookup_field = 'pk'
-
-
-class OrderListAPIView(generics.ListAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-
-
-class OrderDetailAPIView(generics.RetrieveAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    lookup_field = 'pk'
-
-
-class TransactionListAPIView(generics.ListAPIView):
-    queryset = TransactionType.objects.all()
-    serializer_class = ProductCategorySerializer
-
-
-class TransactionDetailAPIView(generics.RetrieveAPIView):
-    queryset = Transaction.objects.all()
-    serializer_class = ProductSerializer
-    lookup_field = 'pk'
-
-
-# create method api list
-class EmployeeRoleAddAPIView(generics.CreateAPIView):
-    queryset = EmployeeRole.objects.all()
-    serializer_class = EmployeeRoleAddSerializer
-
-
-class EmployeeAddAPIView(generics.CreateAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeCreateSerializer
-
-
-class RepairmanAddAPIView(generics.CreateAPIView):
-    # قابل ساخت با پنل پیامکی
-    pass
-
-
-class CustomerAddAPIView(generics.CreateAPIView):
-    # قابل ساخت با پنل پیامکی
-    pass
-
-
-class BusinessCustomerAddAPIView(generics.CreateAPIView):
-    # قابل ساخت با پنل پیامکی
-    pass
-
-
-class SonyAccountAddAPIView(generics.CreateAPIView):
-    queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
-
-
-class ProductAddAPIView(generics.CreateAPIView):
-    queryset = ProductCategory.objects.all()
-    serializer_class = ProductAddSerializer
+        return response
