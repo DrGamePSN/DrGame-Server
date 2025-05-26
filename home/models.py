@@ -42,7 +42,7 @@ class CartItem(models.Model):
 # Blog
 
 class BlogCategory(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255 , unique= True)
 
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
