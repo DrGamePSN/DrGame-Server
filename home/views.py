@@ -6,6 +6,7 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
 from .models import Cart, CartItem
 
 
+# cart
 class CartDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
     queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
@@ -29,11 +30,11 @@ class CartDeleteAPIView(generics.DestroyAPIView):
     queryset = Cart.objects.filter(is_deleted=False).all()
     lookup_field = 'id'
 
-    def delete(self, request, id):
-        cart = get_object_or_404(Cart, id=id)
-        cart.is_deleted = True
-        cart.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    # def delete(self, request, id):
+    #     cart = get_object_or_404(Cart, id=id)
+    #     cart.is_deleted = True
+    #     cart.save()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # cart-item
