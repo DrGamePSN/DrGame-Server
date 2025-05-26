@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-
+ # cart / cart-items / blog
 urlpatterns = [
     #list urls
     path('cart/<uuid:id>/items/',views.CartItemListAPIView.as_view(),name = 'cart-item-list'),

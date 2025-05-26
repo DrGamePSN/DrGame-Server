@@ -100,3 +100,6 @@ class CartItemDeleteAPIView(generics.DestroyAPIView):
 
         except CartItem.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+# blog

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'storages',
+    'ckeditor',
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
