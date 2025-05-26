@@ -3,14 +3,14 @@ import secrets
 from datetime import timedelta
 from django.contrib.auth import authenticate
 from django.utils import timezone
-from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .models import CustomUser, OTP, APIKey
+from .throttles import PhoneRateThrottle
 
 
 class CreateAPIKeyView(APIView):
@@ -34,11 +34,8 @@ class CreateAPIKeyView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        # تولید API Key
         api_key = APIKey.objects.create(client_name=client_name)
-        # کلید به‌صورت خودکار در مدل APIKey با متد save تولید می‌شه
 
-        # پاسخ
         return Response(
             {
                 "api_key": api_key.key,
@@ -55,10 +52,10 @@ class CreateAPIKeyView(APIView):
 
 
 class RequestOTPView(APIView):
-    throttle_classes = [AnonRateThrottle]
+    throttle_classes = [AnonRateThrottle, PhoneRateThrottle]
 
-    @ratelimit(key='post:phone', rate='4/h', method='POST')
     def post(self, request):
+        # چک کردن API Key
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
@@ -73,16 +70,9 @@ class RequestOTPView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        was_limited = getattr(request, 'limited', False)
-        if was_limited:
-            return Response(
-                {"error": "بیش از 4 درخواست در ساعت مجاز نیست"},
-                status=status.HTTP_429_TOO_MANY_REQUESTS
-            )
-
         user, created = CustomUser.objects.get_or_create(phone=phone, defaults={'is_active': True})
 
-        otp_code = str(secrets.randbelow(100000000)).zfill(8)  # کد 8 رقمی
+        otp_code = str(secrets.randbelow(100000000)).zfill(8)
         expires_at = timezone.now() + timedelta(minutes=2)
         OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
 
@@ -98,91 +88,137 @@ class VerifyOTPView(APIView):
     throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
-        # چک کردن API Key
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
-                {"error": "API Key نامعتبر است"},
+                {"error": "Invalid API Key"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # گرفتن داده‌ها
         phone = request.data.get('phone')
         code = request.data.get('code')
         if not phone or not code:
             return Response(
-                {"error": "شماره موبایل و کد OTP الزامی است"},
+                {"error": "Phone number and OTP code are required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # پیدا کردن کاربر
         try:
             user = CustomUser.objects.get(phone=phone)
         except CustomUser.DoesNotExist:
             return Response(
-                {"error": "کاربر یافت نشد"},
+                {"error": "User not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # چک کردن OTP
         try:
             otp = OTP.objects.filter(user=user).latest('created_at')
             if otp.code != code or not otp.is_valid():
                 return Response(
-                    {"error": "کد OTP نامعتبر یا منقضی شده است"},
+                    {"error": "Invalid or expired OTP"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         except OTP.DoesNotExist:
             return Response(
-                {"error": "کد OTP یافت نشد"},
+                {"error": "No OTP found"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # تولید توکن‌های JWT
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
 
-        # ذخیره توکن‌ها در Cookie
         response = Response(
-            {"message": "ورود موفق"},
+            {"message": "Login successful"},
             status=status.HTTP_200_OK
         )
         response.set_cookie(
             key='access_token',
             value=access_token,
             httponly=True,
-            secure=True,
+            secure=True,  # برای پروداکشن
             samesite='Strict',
-            max_age=3600  # 1 ساعت
+            max_age=3600
         )
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=True,
+            secure=True,  # برای پروداکشن
             samesite='Strict',
-            max_age=432000  # 5 روز
+            max_age=432000
         )
 
         return response
+
+
+class RefreshTokenView(APIView):
+    throttle_classes = [AnonRateThrottle]
+
+    def post(self, request):
+        api_key = request.headers.get('X-API-Key')
+        if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
+            return Response(
+                {"error": "Invalid API Key"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response(
+                {"error": "No refresh token provided"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+
+            response = Response(
+                {"message": "Token refreshed successfully"},
+                status=status.HTTP_200_OK
+            )
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=True,  # برای پروداکشن
+                samesite='Strict',
+                max_age=3600
+            )
+
+            if hasattr(refresh, 'token'):
+                response.set_cookie(
+                    key='refresh_token',
+                    value=str(refresh),
+                    httponly=True,
+                    secure=True,  # برای پروداکشن
+                    samesite='Strict',
+                    max_age=432000
+                )
+
+            return response
+
+        except TokenError as e:
+            return Response(
+                {"error": f"Invalid refresh token: {str(e)}"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class LogoutView(APIView):
     throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
-        # چک کردن API Key
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
-                {"error": "API Key نامعتبر است"},
+                {"error": "Invalid API Key"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # پاک کردن کوکی‌ها
         response = Response(
-            {"message": "خروج موفق"},
+            {"message": "Logout successful"},
             status=status.HTTP_200_OK
         )
         response.delete_cookie('access_token')

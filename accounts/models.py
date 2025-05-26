@@ -27,6 +27,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.phone
 
 
+class MainManager(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, unique=True)
+    access = models.CharField(max_length=1, choices=(('1', '1'),), unique=True)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class OTP(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='otps')
     code = models.CharField(max_length=8)  # برای OTP 8 رقمی

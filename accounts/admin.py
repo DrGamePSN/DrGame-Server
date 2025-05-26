@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, APIKey
+from .models import CustomUser, APIKey, MainManager
 
 
 # Register your models here.
@@ -29,3 +29,10 @@ class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('client_name', 'key', 'is_active', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('client_name', 'key')
+
+
+@admin.register(MainManager)
+class MainManagerAdmin(admin.ModelAdmin):
+    class Meta:
+        list_display = '__all__'
+        search_fields = '__all__'
