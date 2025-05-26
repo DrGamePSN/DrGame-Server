@@ -34,6 +34,13 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['product', 'quantity']
 
+    def validate(self, data):
+        product_item = data['product']
+        product = Product.objects.get(pk = product_item.pk)
+        if data['quantity'] > product.stock:
+            raise serializers.ValidationError('out of stock!')
+        return data
+
     def create(self, validated_data):
         cart = self.context['cart']
         product = validated_data.get('product')
