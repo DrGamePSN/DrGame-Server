@@ -2,7 +2,8 @@ from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer
+from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
+    CartCreateSerializer
 from .models import Cart, CartItem
 
 
@@ -21,7 +22,7 @@ class CartDetailAPIView(generics.RetrieveAPIView):
 
 
 class CartCreateAPIView(generics.CreateAPIView):
-    serializer_class = CartSerializer
+    serializer_class = CartCreateSerializer
     queryset = Cart.objects.filter(is_deleted=False).all()
 
 
@@ -29,12 +30,6 @@ class CartDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CartSerializer
     queryset = Cart.objects.filter(is_deleted=False).all()
     lookup_field = 'id'
-
-    # def delete(self, request, id):
-    #     cart = get_object_or_404(Cart, id=id)
-    #     cart.is_deleted = True
-    #     cart.save()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # cart-item
@@ -87,6 +82,21 @@ class CartItemUpdateAPIView(generics.UpdateAPIView):
             updated_item = updated_serializer.save()
             serializer = CartItemSerializer(updated_item)
             return Response(serializer.data)
+
+        except CartItem.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class CartItemDeleteAPIView(generics.DestroyAPIView):
+    queryset = CartItem.objects.select_related('product__color', 'cart').filter(is_deleted=False).all()
+    serializer_class = CartItemSerializer
+
+    def delete(self, request, id, pk):
+        cart = get_object_or_404(Cart, id=id)
+        try:
+            cart_item = CartItem.objects.get(cart=cart, pk=pk)
+            cart_item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         except CartItem.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)

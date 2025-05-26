@@ -62,7 +62,15 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'cart_items', 'total_price']
-        read_only_fields = ['id', ]
+        read_only_fields = ['id','cart_items','total_price' ]
 
     def get_total_price(self, obj):
         return obj.total_price
+
+
+class CartCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Cart
+        fields = ['id']
+        read_only_fields = ['id']

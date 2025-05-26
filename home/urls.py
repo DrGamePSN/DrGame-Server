@@ -14,6 +14,7 @@ urlpatterns = [
     # update urls
     path('cart/<uuid:id>/items/<int:pk>/update/', views.CartItemUpdateAPIView.as_view(), name='cart-item-update'),
     # delete urls
-    path('cart/<uuid:id>/delete/', views.CartDeleteAPIView.as_view(), name='cart-delete')
+    path('cart/<uuid:id>/delete/', views.CartDeleteAPIView.as_view(), name='cart-delete'),
+    path('cart/<uuid:id>/items/<int:pk>/delete/', views.CartItemDeleteAPIView.as_view(), name='cart-item-delete'),
 
 ]
