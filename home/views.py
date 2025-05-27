@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
-    CartCreateSerializer, BlogCategorySerializer
-from .models import Cart, CartItem, BlogCategory
+    CartCreateSerializer, BlogCategorySerializer, BlogPostSerializer, UpdateBlogPostSerializer, CreateBlogPostSerializer
+from .models import Cart, CartItem, BlogCategory, BlogPost
 
 
 # cart
@@ -137,4 +137,45 @@ class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
     serializer_class = BlogCategorySerializer
     permission_classes = [IsAdminUser]
 
+
 # blog-post
+
+class BlogPostListAPIView(generics.ListAPIView):
+    queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
+    serializer_class = BlogPostSerializer
+
+
+class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
+    queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
+    serializer_class = BlogPostSerializer
+
+class BlogPostCreateAPIView(generics.CreateAPIView):
+    queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
+    serializer_class = CreateBlogPostSerializer
+
+    def post(self, request, *args, **kwargs):
+        created_serializer = self.serializer_class(data=request.data)
+        created_serializer.is_valid(raise_exception=True)
+        created_item = created_serializer.save()
+        serializer = BlogPostSerializer(created_item)
+        return Response(serializer.data)
+
+
+
+class BlogPostUpdateAPIView(generics.UpdateAPIView):
+    queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
+    serializer_class = UpdateBlogPostSerializer
+
+    def put(self, request, *args, **kwargs):
+        post_pk = self.kwargs.get('pk')
+        post = BlogPost.objects.get(pk=post_pk)
+        updated_serializer = self.serializer_class(post, data=request.data)
+        updated_serializer.is_valid(raise_exception=True)
+        updated_item = updated_serializer.save()
+        serializer = BlogPostSerializer(updated_item)
+        return Response(serializer.data)
+
+
+class BlogPostDeleteAPIView(generics.DestroyAPIView):
+    queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
+    serializer_class = BlogPostSerializer

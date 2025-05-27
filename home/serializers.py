@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, BlogCategory
+from .models import Cart, CartItem, BlogCategory, BlogPost
 from storage.models import Product, ProductColor
 
 
@@ -109,3 +109,31 @@ class BlogCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogCategory
         fields = ['title']
+
+
+class BlogPostSerializer(serializers.ModelSerializer):
+    category = BlogCategorySerializer()
+
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class CreateBlogPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class UpdateBlogPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+        extra_kwargs = {
+            'title': {'required': False},
+            'category': {'required': False},
+            'description': {'required': False},
+        }
