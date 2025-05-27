@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'storages',
     'ckeditor',
+    'django_filters',
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -67,6 +68,9 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'COERCE_DECIMAL_TO_STRING': False,
+    'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'DrGame APIs',

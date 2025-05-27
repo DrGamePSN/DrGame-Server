@@ -1,6 +1,8 @@
 from unicodedata import category
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
+from rest_framework.filters import SearchFilter , OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
@@ -120,6 +122,8 @@ class CartItemDeleteAPIView(generics.DestroyAPIView):
 class BlogCategoryListAPIView(generics.ListAPIView):
     queryset = BlogCategory.objects.filter(is_deleted=False).all()
     serializer_class = BlogCategorySerializer
+    filter_backends = [SearchFilter,]
+    search_fields = ['title']
 
 
 class BlogCategoryCreateAPIView(generics.CreateAPIView):
@@ -145,6 +149,10 @@ class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
 class BlogPostListAPIView(generics.ListAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = BlogPostSerializer
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    search_fields = ['title']
+    filterset_fields = ['category']
+    ordering_fields = ['created_at']
 
 
 class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
@@ -191,6 +199,10 @@ class BlogPostDeleteAPIView(generics.DestroyAPIView):
 class BlogPostListByCategoryAPIView(generics.ListAPIView):
     serializer_class = BlogPostSerializer
     permission_classes = [AllowAny]
+
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    search_fields = ['title']
+    ordering_fields = ['created_at']
 
     def get_queryset(self):
         category_id = self.kwargs.get('category_id')
