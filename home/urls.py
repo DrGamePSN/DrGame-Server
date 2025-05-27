@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-# cart / cart-items / blog
+# cart / cart-items / blog / contact / about
 urlpatterns = [
     # list urls
     path('cart/<uuid:id>/items/', views.CartItemListAPIView.as_view(), name='cart-item-list'),
@@ -18,6 +18,8 @@ urlpatterns = [
     path('blog/posts/<int:pk>/', views.BlogPostRetrieveAPIView.as_view(), name='blog-post-detail'),
     path('blog/categories/<int:category_id>/posts/<int:pk>/', views.BlogPostRetrieveByCategoryAPIView.as_view(),
          name='blog-category-posts-detail'),
+    path('about-us/', views.AboutUsRetrieveAPIView.as_view(), name='about-us'),
+    path('contact-us/', views.ContactUsRetrieveAPIView.as_view(), name='contact-us'),
 
     # create urls
 
@@ -25,12 +27,14 @@ urlpatterns = [
     path('cart/<uuid:id>/items/add/', views.CartItemAddCreateAPIView.as_view(), name='cart-item-create'),
     path('blog/categories/add/', views.BlogCategoryCreateAPIView.as_view(), name='blog-category-create'),
     path('blog/posts/add/', views.BlogPostCreateAPIView.as_view(), name='blog-post-create'),
+    path('contact/submit/', views.ContactSubmissionCreateAPIView.as_view(), name='contact-submit'),
 
     # update urls
 
     path('cart/<uuid:id>/items/<int:pk>/update/', views.CartItemUpdateAPIView.as_view(), name='cart-item-update'),
     path('blog/categories/<int:pk>/update/', views.BlogCategoryUpdateAPIView.as_view(), name='blog-category-update'),
     path('blog/posts/<int:pk>/update/', views.BlogPostUpdateAPIView.as_view(), name='blog-post-update'),
+    path('about-us/update/', views.AboutUsUpdateAPIView.as_view(), name='about-us-update'),
 
     # delete urls
 

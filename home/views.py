@@ -2,14 +2,15 @@ from unicodedata import category
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework.filters import SearchFilter , OrderingFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
-    CartCreateSerializer, BlogCategorySerializer, BlogPostSerializer, UpdateBlogPostSerializer, CreateBlogPostSerializer
-from .models import Cart, CartItem, BlogCategory, BlogPost
+    CartCreateSerializer, BlogCategorySerializer, BlogPostSerializer, UpdateBlogPostSerializer, \
+    CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer
+from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission
 
 
 # cart
@@ -122,7 +123,7 @@ class CartItemDeleteAPIView(generics.DestroyAPIView):
 class BlogCategoryListAPIView(generics.ListAPIView):
     queryset = BlogCategory.objects.filter(is_deleted=False).all()
     serializer_class = BlogCategorySerializer
-    filter_backends = [SearchFilter,]
+    filter_backends = [SearchFilter, ]
     search_fields = ['title']
 
 
@@ -224,3 +225,41 @@ class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
             category_id=category_id,
             is_deleted=False
         ).select_related('category').order_by('-created_at')
+
+
+# contact us & about us
+
+class AboutUsRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = AboutUsSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
+        return obj
+
+
+class AboutUsUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = AboutUsSerializer
+    permission_classes = [IsAdminUser]
+    http_method_names = ['put']
+
+    def get_object(self):
+        obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
+        return obj
+
+
+class ContactUsRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ContactUsSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
+        return obj
+
+
+class ContactSubmissionCreateAPIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ContactSubmissionSerializer
+    queryset = ContactSubmission.objects.select_related('user').all()
+
+    def get_serializer_context(self):
+        return {'user_id' : self.request.user.id}
+

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, BlogCategory, BlogPost
+from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission
 from storage.models import Product, ProductColor
 
 
@@ -137,3 +137,52 @@ class UpdateBlogPostSerializer(serializers.ModelSerializer):
             'category': {'required': False},
             'description': {'required': False},
         }
+
+
+# contact us & about us
+
+class AboutUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutUs
+        fields = ['id', 'title', 'subtitle', 'content', 'banner_image', 'team_image']
+        read_only_fields = ['id']
+
+        extra_kwargs = {
+            'title': {'required': False},
+            'subtitle': {'required': False},
+            'content': {'required': False},
+            'banner_image': {'required': False},
+            'team_image': {'required': False},
+
+        }
+
+
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = ['id', 'address', 'phone', 'email', 'map_embed_code', 'opening_hours', 'facebook_url', 'twitter_url',
+                  'instagram_url']
+        read_only_fields = ['id']
+
+        extra_kwargs = {
+            'address': {'required': False},
+            'phone': {'required': False},
+            'email': {'required': False},
+            'map_embed_code': {'required': False},
+            'opening_hours': {'required': False},
+            'facebook_url': {'required': False},
+            'twitter_url': {'required': False},
+            'instagram_url': {'required': False},
+
+        }
+
+
+class ContactSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactSubmission
+        fields = ['name', 'user', 'email', 'subject', 'message', ]
+        read_only_fields = ['user']
+
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+        return ContactSubmission.objects.create(user_id=user_id, **validated_data)
