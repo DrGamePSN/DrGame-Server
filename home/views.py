@@ -1,6 +1,8 @@
+from unicodedata import category
+
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
@@ -149,6 +151,7 @@ class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = BlogPostSerializer
 
+
 class BlogPostCreateAPIView(generics.CreateAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = CreateBlogPostSerializer
@@ -160,7 +163,6 @@ class BlogPostCreateAPIView(generics.CreateAPIView):
         created_item = created_serializer.save()
         serializer = BlogPostSerializer(created_item)
         return Response(serializer.data)
-
 
 
 class BlogPostUpdateAPIView(generics.UpdateAPIView):
@@ -183,3 +185,30 @@ class BlogPostDeleteAPIView(generics.DestroyAPIView):
     serializer_class = BlogPostSerializer
     permission_classes = [IsAdminUser]
 
+
+# nested urls for blog posts & categories => blog/categories/2/posts
+
+class BlogPostListByCategoryAPIView(generics.ListAPIView):
+    serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        return BlogPost.objects.filter(
+            category_id=category_id,
+            is_deleted=False
+        ).select_related('category').order_by('-created_at')
+
+
+# nested urls for blog posts & categories => blog/categories/2/posts/3
+
+class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
+    serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        return BlogPost.objects.filter(
+            category_id=category_id,
+            is_deleted=False
+        ).select_related('category').order_by('-created_at')

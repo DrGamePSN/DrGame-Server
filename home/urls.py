@@ -8,12 +8,16 @@ urlpatterns = [
     path('cart/<uuid:id>/items/', views.CartItemListAPIView.as_view(), name='cart-item-list'),
     path('blog/categories/', views.BlogCategoryListAPIView.as_view(), name='blog-category-list'),
     path('blog/posts/', views.BlogPostListAPIView.as_view(), name='blog-post-list'),
+    path('blog/categories/<int:category_id>/posts/', views.BlogPostListByCategoryAPIView.as_view(),
+         name='blog-category-posts-list'),
 
     # retrieve urls
 
     path('cart/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
     path('cart/<uuid:id>/items/<int:pk>/', views.CartItemDetailAPIView.as_view(), name='cart-item-detail'),
     path('blog/posts/<int:pk>/', views.BlogPostRetrieveAPIView.as_view(), name='blog-post-detail'),
+    path('blog/categories/<int:category_id>/posts/<int:pk>/', views.BlogPostRetrieveByCategoryAPIView.as_view(),
+         name='blog-category-posts-detail'),
 
     # create urls
 
