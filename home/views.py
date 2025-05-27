@@ -152,6 +152,7 @@ class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
 class BlogPostCreateAPIView(generics.CreateAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = CreateBlogPostSerializer
+    permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
         created_serializer = self.serializer_class(data=request.data)
@@ -165,6 +166,7 @@ class BlogPostCreateAPIView(generics.CreateAPIView):
 class BlogPostUpdateAPIView(generics.UpdateAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = UpdateBlogPostSerializer
+    permission_classes = [IsAdminUser]
 
     def put(self, request, *args, **kwargs):
         post_pk = self.kwargs.get('pk')
@@ -179,3 +181,5 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
 class BlogPostDeleteAPIView(generics.DestroyAPIView):
     queryset = BlogPost.objects.select_related('category').filter(is_deleted=False).all()
     serializer_class = BlogPostSerializer
+    permission_classes = [IsAdminUser]
+
