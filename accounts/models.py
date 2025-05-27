@@ -17,7 +17,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_deleted = models.BooleanField(default=False, null=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    is_deleted = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 

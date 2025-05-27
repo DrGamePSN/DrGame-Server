@@ -169,6 +169,7 @@ SIMPLE_JWT = {
 }
 CORS_ORIGIN_ALLOW = [
     'localhost:3000',
+    'localhost:5173'
     'localhost:8000',
     'gamedr.ir',
 ]

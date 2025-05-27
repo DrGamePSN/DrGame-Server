@@ -7,10 +7,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-
-from .models import CustomUser, OTP, APIKey
-from .throttles import PhoneRateThrottle
+from accounts.models import CustomUser, OTP, APIKey, MainManager
+from accounts.throttles import PhoneRateThrottle
+from customers.models import Customer, BusinessCustomer
+from employees.models import Employee, Repairman
 
 
 class CreateAPIKeyView(APIView):
@@ -225,3 +227,42 @@ class LogoutView(APIView):
         response.delete_cookie('refresh_token')
 
         return response
+
+class UserStatusView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {
+                    "is_authenticated": False,
+                    "user_type": None,
+                    "user_id": None
+                },
+                status=status.HTTP_200_OK
+            )
+
+        user = request.user
+        user_type = None
+
+        if MainManager.objects.filter(user=user).exists():
+            user_type = "main_manager"
+        elif Employee.objects.filter(user=user).exists():
+            user_type = "employee"
+        elif Repairman.objects.filter(user=user).exists():
+            user_type = "repairman"
+        elif Customer.objects.filter(user=user).exists():
+            user_type = "customer"
+        elif BusinessCustomer.objects.filter(user=user).exists():
+            user_type = "business_customer"
+        else:
+            user_type = "none"
+
+        return Response(
+            {
+                "is_authenticated": True,
+                "user_type": user_type,
+                "user_id": user.id
+            },
+            status=status.HTTP_200_OK
+        )

@@ -1,5 +1,10 @@
+__pycache__/
 *.pyc
-**/__pycache__/
+*.pyo
+*.pyd
+*.swp
+.env
+venv/
 .idea/
 *.sqlite3
 *.sqlite
