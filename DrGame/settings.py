@@ -164,12 +164,12 @@ SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',
     'AUTH_COOKIE_REFRESH': 'refresh_token',
     'AUTH_COOKIE_HTTP_ONLY': True,
-    'AUTH_COOKIE_SECURE': True,
-    'AUTH_COOKIE_SAMESITE': 'Strict',
+    'AUTH_COOKIE_SECURE': False,
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 CORS_ORIGIN_ALLOW = [
     'localhost:3000',
-    'localhost:5173'
+    'localhost:5173',
     'localhost:8000',
     'gamedr.ir',
 ]

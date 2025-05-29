@@ -1,14 +1,16 @@
 # your_app/views.py
 import secrets
 from datetime import timedelta
+import requests
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from DrGame import settings
+from accounts.auth import CustomJWTAuthentication
 from accounts.models import CustomUser, OTP, APIKey, MainManager
 from accounts.throttles import PhoneRateThrottle
 from customers.models import Customer, BusinessCustomer
@@ -73,13 +75,37 @@ class RequestOTPView(APIView):
             )
 
         user, created = CustomUser.objects.get_or_create(phone=phone, defaults={'is_active': True})
-
         otp_code = str(secrets.randbelow(100000000)).zfill(8)
         expires_at = timezone.now() + timedelta(minutes=2)
         OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
+        faraz_url = "https://api2.ippanel.com/api/v1/sms/pattern/normal/send"
+        faraz_api_key = "OWYwNmNlODYtNTc2YS00OTEzLWIzZmMtYWFiNzQxOGIyN2Y1NzMzZmNiOGI2ODMyZmY1Y2JhZWNjNzVlNWNhOGMyOWU="
+        faraz_phone = '+98' + phone[1:]
+        headers = {
+            "apikey": faraz_api_key,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "code": "0li89sh8n64thu4",
+            "sender": "+983000505",
+            "recipient": faraz_phone,
+            "variable": {
+                "code": otp_code
+            }
+        }
+        try:
+            response = requests.post(faraz_url, json=payload, headers=headers, timeout=10)
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(f"Response Body: {response.text}")
+            try:
+                print(f"Response JSON: {response.json()}")
+            except ValueError:
+                print("Response is not valid JSON")
 
+        except requests.exceptions.RequestException as e:
+            print(f"Request Error: {str(e)}")
         print(f"OTP for {phone}: {otp_code}")
-
         return Response(
             {"message": "لطفاً کد OTP را وارد کنید"},
             status=status.HTTP_200_OK
@@ -138,16 +164,16 @@ class VerifyOTPView(APIView):
             key='access_token',
             value=access_token,
             httponly=True,
-            secure=True,  # برای پروداکشن
-            samesite='Strict',
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
             max_age=3600
         )
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=True,  # برای پروداکشن
-            samesite='Strict',
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
             max_age=432000
         )
 
@@ -184,8 +210,8 @@ class RefreshTokenView(APIView):
                 key='access_token',
                 value=access_token,
                 httponly=True,
-                secure=True,  # برای پروداکشن
-                samesite='Strict',
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
                 max_age=3600
             )
 
@@ -194,8 +220,8 @@ class RefreshTokenView(APIView):
                     key='refresh_token',
                     value=str(refresh),
                     httponly=True,
-                    secure=True,  # برای پروداکشن
-                    samesite='Strict',
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
                     max_age=432000
                 )
 
@@ -210,6 +236,9 @@ class RefreshTokenView(APIView):
 
 class LogoutView(APIView):
     throttle_classes = [AnonRateThrottle]
+
+    def get(self, request):  # اضافه کردن متد GET
+        return self.post(request)  # استفاده از منطق POST
 
     def post(self, request):
         api_key = request.headers.get('X-API-Key')
@@ -228,8 +257,9 @@ class LogoutView(APIView):
 
         return response
 
+
 class UserStatusView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get(self, request):
         if not request.user.is_authenticated:
@@ -239,7 +269,7 @@ class UserStatusView(APIView):
                     "user_type": None,
                     "user_id": None
                 },
-                status=status.HTTP_200_OK
+                status=200
             )
 
         user = request.user
@@ -264,5 +294,5 @@ class UserStatusView(APIView):
                 "user_type": user_type,
                 "user_id": user.id
             },
-            status=status.HTTP_200_OK
+            status=200
         )
