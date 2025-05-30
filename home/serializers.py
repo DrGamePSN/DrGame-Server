@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import Cart, CartItem
+from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission
 from storage.models import Product, ProductColor
 
 
+# cart-item
 class ProductColorCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColor
@@ -34,16 +35,27 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['product', 'quantity']
 
+    def validate(self, data):
+        product_item = data['product']
+        product = Product.objects.get(pk=product_item.pk)
+        if data['quantity'] > product.stock:
+            raise serializers.ValidationError('out of stock!')
+        return data
+
     def create(self, validated_data):
-        cart = self.context['cart']
+        cart_id = self.context['cart']
         product = validated_data.get('product')
         quantity = validated_data.get('quantity')
         try:
-            cart_item = CartItem.objects.get(product=product, cart=cart)
-            cart_item.quantity += quantity
-            cart_item.save()
+            cart_item = CartItem.objects.get(product=product, cart_id=cart_id)
+            current_quantity = cart_item.quantity
+            if (current_quantity + quantity) > product.stock:
+                raise serializers.ValidationError('out of stock!')
+            else:
+                cart_item.quantity += quantity
+                cart_item.save()
         except CartItem.DoesNotExist:
-            cart_item = CartItem.objects.create(cart=cart, **validated_data)
+            cart_item = CartItem.objects.create(cart_id=cart_id, **validated_data)
 
         self.instance = cart_item
         return cart_item
@@ -54,6 +66,23 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['quantity', ]
 
+    def validate_quantity(self, value):
+        if value < 1:
+            raise serializers.ValidationError("Quantity must be at least 1")
+        return value
+
+    def validate(self, data):
+        cart_item = self.instance
+
+        # Check product stock
+        if 'quantity' in data and data['quantity'] > cart_item.product.stock:
+            raise serializers.ValidationError({
+                'quantity': f"Only {cart_item.product.stock} items available in stock"
+            })
+        return data
+
+
+# cart
 
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemSerializer(many=True)
@@ -62,7 +91,98 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'cart_items', 'total_price']
-        read_only_fields = ['id', ]
+        read_only_fields = ['id', 'cart_items', 'total_price']
 
     def get_total_price(self, obj):
         return obj.total_price
+
+
+class CartCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = ['id']
+        read_only_fields = ['id']
+
+
+# blog
+class BlogCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogCategory
+        fields = ['title']
+
+
+class BlogPostSerializer(serializers.ModelSerializer):
+    category = BlogCategorySerializer()
+
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class CreateBlogPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class UpdateBlogPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
+        read_only_fields = ['id', 'created_at']
+        extra_kwargs = {
+            'title': {'required': False},
+            'category': {'required': False},
+            'description': {'required': False},
+        }
+
+
+# contact us & about us
+
+class AboutUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutUs
+        fields = ['id', 'title', 'subtitle', 'content', 'banner_image', 'team_image']
+        read_only_fields = ['id']
+
+        extra_kwargs = {
+            'title': {'required': False},
+            'subtitle': {'required': False},
+            'content': {'required': False},
+            'banner_image': {'required': False},
+            'team_image': {'required': False},
+
+        }
+
+
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = ['id', 'address', 'phone', 'email', 'map_embed_code', 'opening_hours', 'facebook_url', 'twitter_url',
+                  'instagram_url']
+        read_only_fields = ['id']
+
+        extra_kwargs = {
+            'address': {'required': False},
+            'phone': {'required': False},
+            'email': {'required': False},
+            'map_embed_code': {'required': False},
+            'opening_hours': {'required': False},
+            'facebook_url': {'required': False},
+            'twitter_url': {'required': False},
+            'instagram_url': {'required': False},
+
+        }
+
+
+class ContactSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactSubmission
+        fields = ['name', 'user', 'email', 'subject', 'message', ]
+        read_only_fields = ['user']
+
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+        return ContactSubmission.objects.create(user_id=user_id, **validated_data)
