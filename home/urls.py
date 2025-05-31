@@ -21,20 +21,26 @@ urlpatterns = [
     # Categories
     path('blog/categories/', views.BlogCategoryListAPIView.as_view(), name='blog-category-list'),
     path('blog/categories/add/', views.BlogCategoryCreateAPIView.as_view(), name='blog-category-create'),
-    path('blog/categories/<int:pk>/update/', views.BlogCategoryUpdateAPIView.as_view(), name='blog-category-update'),
-    path('blog/categories/<int:pk>/delete/', views.BlogCategoryDeleteAPIView.as_view(), name='blog-category-delete'),
+    path('blog/categories/<str:slug>/update/', views.BlogCategoryUpdateAPIView.as_view(), name='blog-category-update'),
+    path('blog/categories/<str:slug>/delete/', views.BlogCategoryDeleteAPIView.as_view(), name='blog-category-delete'),
+
+    # tags
+    path('blog/tags/', views.BlogTagListAPIView.as_view(), name='blog-tag-list'),
+    path('blog/tags/add/', views.BlogTagCreateAPIView.as_view(), name='blog-tag-create'),
+    path('blog/tags/<str:slug>/update/', views.BlogTagUpdateAPIView.as_view(), name='blog-tag-update'),
+    path('blog/tags/<str:slug>/delete/', views.BlogTagDeleteAPIView.as_view(), name='blog-tag-delete'),
 
     # Posts
     path('blog/posts/', views.BlogPostListAPIView.as_view(), name='blog-post-list'),
     path('blog/posts/add/', views.BlogPostCreateAPIView.as_view(), name='blog-post-create'),
-    path('blog/posts/<int:pk>/', views.BlogPostRetrieveAPIView.as_view(), name='blog-post-detail'),
-    path('blog/posts/<int:pk>/update/', views.BlogPostUpdateAPIView.as_view(), name='blog-post-update'),
-    path('blog/posts/<int:pk>/delete/', views.BlogPostDeleteAPIView.as_view(), name='blog-post-delete'),
+    path('blog/posts/<str:slug>/', views.BlogPostRetrieveAPIView.as_view(), name='blog-post-detail'),
+    path('blog/posts/<str:slug>/update/', views.BlogPostUpdateAPIView.as_view(), name='blog-post-update'),
+    path('blog/posts/<str:slug>/delete/', views.BlogPostDeleteAPIView.as_view(), name='blog-post-delete'),
 
     # Nested Category Posts
-    path('blog/categories/<int:category_id>/posts/', views.BlogPostListByCategoryAPIView.as_view(),
+    path('blog/categories/<str:category_slug>/posts/', views.BlogPostListByCategoryAPIView.as_view(),
          name='blog-category-posts-list'),
-    path('blog/categories/<int:category_id>/posts/<int:pk>/', views.BlogPostRetrieveByCategoryAPIView.as_view(),
+    path('blog/categories/<str:category_slug>/posts/<str:slug>/', views.BlogPostRetrieveByCategoryAPIView.as_view(),
          name='blog-category-posts-detail'),
 
     # ==================== Content Pages ====================
@@ -44,6 +50,3 @@ urlpatterns = [
     path('contact-us/', views.ContactUsRetrieveAPIView.as_view(), name='contact-us'),
     path('contact/submit/', views.ContactSubmissionCreateAPIView.as_view(), name='contact-submit'),
 ]
-
-
-

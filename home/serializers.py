@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission
+from slugify import slugify
+
+from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag
 from storage.models import Product, ProductColor
 
 
@@ -108,35 +110,104 @@ class CartCreateSerializer(serializers.ModelSerializer):
 class BlogCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogCategory
-        fields = ['title']
+        fields = ['id', 'name', 'slug', 'description', 'created_at']
+        read_only_fields = ['slug', 'created_at']
+
+    def create(self, validated_data):
+        blog_category = BlogCategory(**validated_data)
+        blog_category.slug = slugify(blog_category.name, allow_unicode=True)
+        blog_category.save()
+        return blog_category
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.slug = slugify(instance.name, allow_unicode=True)
+        instance.save()
+        return instance
 
 
-class BlogPostSerializer(serializers.ModelSerializer):
-    category = BlogCategorySerializer()
+class PostBlogCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogCategory
+        fields = ['name']
+
+
+class BlogTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogTag
+        fields = ['id', 'name', 'slug']
+        read_only_fields = ['id', 'slug']
+
+    def create(self, validated_data):
+        blog_tag = BlogTag(**validated_data)
+        blog_tag.slug = slugify(blog_tag.name, allow_unicode=True)
+        blog_tag.save()
+        return blog_tag
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.slug = slugify(instance.name, allow_unicode=True)
+        instance.save()
+        return instance
+
+
+class BlogPostListSerializer(serializers.ModelSerializer):
+    category = PostBlogCategorySerializer()
+    tags = BlogTagSerializer(many=True)
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'title', 'slug', 'category', 'tags',
+                  'featured_image', 'status', 'created_at', 'published_at'
+                  ]
+        read_only_fields = ['id', 'published_at', 'author', 'slug']
+
+
+class BlogPostDetailSerializer(BlogPostListSerializer):
+    class Meta(BlogPostListSerializer.Meta):
+        fields = BlogPostListSerializer.Meta.fields + ['content', 'meta_description', 'updated_at']
 
 
 class CreateBlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'title', 'author', 'category', 'tags', 'content', 'featured_image', 'meta_description',
+                  'status', 'published_at', ]
+        read_only_fields = ['id', 'published_at', 'author']
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags', None)
+        blog_post = BlogPost(**validated_data)
+        blog_post.slug = slugify(blog_post.title, allow_unicode=True)
+        blog_post.author = self.context['user']
+        blog_post.save()
+        blog_post.tags.set(tags_data)
+
+        return blog_post
 
 
 class UpdateBlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'main_img', 'description', 'category', 'author', 'created_at']
-        read_only_fields = ['id', 'created_at']
-        extra_kwargs = {
-            'title': {'required': False},
-            'category': {'required': False},
-            'description': {'required': False},
-        }
+        fields = ['id', 'title', 'author', 'category', 'tags', 'content', 'featured_image', 'meta_description',
+                  'status', 'published_at', ]
+        read_only_fields = ['id', 'published_at', 'author']
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop('tags', None)
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        if 'title' in validated_data:
+            instance.slug = slugify(instance.title, allow_unicode=True)
+
+        instance.save()
+
+        if tags_data is not None:
+            instance.tags.set(tags_data)
+
+        return instance
 
 
 # contact us & about us

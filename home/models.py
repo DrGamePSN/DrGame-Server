@@ -3,6 +3,8 @@ from django.conf import settings
 from django.db import models
 from uuid import uuid4
 from ckeditor.fields import RichTextField
+from django.utils import timezone
+from slugify import slugify
 
 from storage.models import Product, ProductColor
 
@@ -44,35 +46,74 @@ class CartItem(models.Model):
 # Blog
 
 class BlogCategory(models.Model):
-    title = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="نام دسته‌بندی")
+    slug = models.SlugField(max_length=150, unique=True, allow_unicode=True, verbose_name="اسلاگ")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
 
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.title
+        return self.name
 
+class BlogTag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="نام تگ")
+    slug = models.SlugField(max_length=100, unique=True, allow_unicode=True, verbose_name="اسلاگ")
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 class BlogPost(models.Model):
-    title = models.CharField(max_length=255)
-    main_img = models.ImageField(null=True, blank=True, upload_to='main_img/blog/')
-    description = RichTextField()
-    category = models.ForeignKey(BlogCategory, on_delete=models.PROTECT, related_name='posts')
-    author = models.CharField(max_length=255, blank=True)
+    STATUS_CHOICES = (
+        ('draft', 'پیش‌نویس'),
+        ('published', 'منتشر شده'),
+    )
 
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    title = models.CharField(max_length=200,unique=True, verbose_name= "عنوان")
+    slug = models.SlugField(max_length=250, unique=True, allow_unicode=True, verbose_name="اسلاگ")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts', verbose_name="نویسنده")
+    category = models.ForeignKey(BlogCategory, on_delete=models.SET_NULL, null=True, related_name='posts', verbose_name="دسته‌بندی")
+    tags = models.ManyToManyField(BlogTag, blank=True, related_name='posts', verbose_name="تگ‌ها")
+    content = models.TextField(verbose_name="محتوا")
+    featured_image = models.ImageField(upload_to='blog_images/', blank=True, null=True, verbose_name="تصویر شاخص")
+    meta_description = models.CharField(max_length=160, blank=True, null=True, verbose_name="توضیحات متا")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft', verbose_name="وضعیت")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+    published_at = models.DateTimeField(default=timezone.now, verbose_name="تاریخ انتشار")
 
     class Meta:
-        ordering = ['-created_at']
+        verbose_name = "Post"
+        verbose_name_plural = "Posts"
+        ordering = ['-published_at']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
+
 
 
 # about us & contact us models
