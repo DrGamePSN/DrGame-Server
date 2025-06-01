@@ -6,6 +6,7 @@ from accounts.manager import CustomUserManager
 # Create your models here.
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    username = None
     phone = models.CharField(max_length=11, unique=True, verbose_name="phone",null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

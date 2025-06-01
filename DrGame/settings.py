@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'storages',
     'ckeditor',
     'django_filters',
+    'debug_toolbar', #for debug
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -64,6 +65,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #debug config
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -171,3 +175,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+INTERNAL_IPS = [
+
+    "127.0.0.1",
+] #debug config

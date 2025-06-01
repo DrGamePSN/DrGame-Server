@@ -1,7 +1,7 @@
-from unicodedata import category
-
+from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
@@ -14,10 +14,34 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag
 
 
+# permissions
+
+class PermissionsMixin:
+    """Mixin for cart permission checks"""
+
+    def get_cart_or_404(self, cart_id):
+        cart = get_object_or_404(Cart.objects.select_related('user').prefetch_related('cart_items__product__color'),
+                                 id=cart_id, is_deleted=False)
+        if cart.user and cart.user != self.request.user:
+            raise PermissionDenied("این سبد خرید متعلق به شما نیست")
+        if cart.session_key and cart.session_key != self.request.session.session_key:
+            raise PermissionDenied("این سبد خرید متعلق به شما نیست(session)")
+        return cart
+
+
 # cart
-class CartDetailAPIView(generics.RetrieveAPIView):
+class CartDetailAPIView(PermissionsMixin, generics.RetrieveAPIView):
     serializer_class = CartSerializer
-    queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
+
+    queryset = Cart.objects.select_related('user').prefetch_related(Prefetch(
+        'cart_items',
+        queryset=CartItem.objects.select_related('product__color')
+    ))
+
     lookup_field = 'id'
 
 
@@ -25,39 +49,59 @@ class CartCreateAPIView(generics.CreateAPIView):
     serializer_class = CartCreateSerializer
     queryset = Cart.objects.filter(is_deleted=False).all()
 
+    def get_serializer_context(self):
+        return {'request': self.request}
 
-class CartDeleteAPIView(generics.DestroyAPIView):
+
+class CartDeleteAPIView(PermissionsMixin, generics.DestroyAPIView):
     serializer_class = CartSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
+
     queryset = Cart.objects.filter(is_deleted=False).all()
     lookup_field = 'id'
 
 
 # cart-item
 
-class CartItemListAPIView(generics.ListAPIView):
+class CartItemListAPIView(PermissionsMixin, generics.ListAPIView):
     serializer_class = CartItemSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
+        return (CartItem.objects.select_related('product__color', 'cart__user').
                 filter(cart=cart, is_deleted=False).all())
 
 
-class CartItemDetailAPIView(generics.RetrieveAPIView):
+class CartItemDetailAPIView(PermissionsMixin, generics.RetrieveAPIView):
     serializer_class = CartItemSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
+        return (CartItem.objects.select_related('product__color', 'cart__user').
                 filter(cart=cart, is_deleted=False).all())
 
 
-class CartItemAddCreateAPIView(generics.CreateAPIView):
+class CartItemAddCreateAPIView(PermissionsMixin, generics.CreateAPIView):
     serializer_class = AddCartItemSerializer
 
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
+
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
+        return (CartItem.objects.select_related('product__color', 'cart__user').
                 filter(cart=cart, is_deleted=False).all())
 
     def get_serializer_context(self):
@@ -72,12 +116,16 @@ class CartItemAddCreateAPIView(generics.CreateAPIView):
         return Response(serializer.data)
 
 
-class CartItemUpdateAPIView(generics.UpdateAPIView):
+class CartItemUpdateAPIView(PermissionsMixin, generics.UpdateAPIView):
     serializer_class = UpdateCartItemSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
+        return (CartItem.objects.select_related('product__color', 'cart__user').
                 filter(cart=cart, is_deleted=False).all())
 
     def get_serializer_context(self):
@@ -98,8 +146,12 @@ class CartItemUpdateAPIView(generics.UpdateAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class CartItemDeleteAPIView(generics.DestroyAPIView):
+class CartItemDeleteAPIView(PermissionsMixin, generics.DestroyAPIView):
     serializer_class = CartItemSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -213,6 +265,7 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
     serializer_class = UpdateBlogPostSerializer
     permission_classes = [IsAdminUser]
     lookup_field = 'slug'
+
     # http_method_names = ['patch']
     def put(self, request, *args, **kwargs):
         post_slug = self.kwargs.get('slug')
@@ -222,8 +275,6 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
         updated_item = updated_serializer.save()
         serializer = BlogPostDetailSerializer(updated_item)
         return Response(serializer.data)
-
-
 
 
 class BlogPostDeleteAPIView(generics.DestroyAPIView):
@@ -257,6 +308,7 @@ class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
     serializer_class = BlogPostDetailSerializer
     permission_classes = [AllowAny]
     lookup_field = 'slug'
+
     def get_queryset(self):
         category_slug = self.kwargs.get('category_slug')
         return BlogPost.objects.filter(
