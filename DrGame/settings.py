@@ -147,6 +147,9 @@ REST_FRAMEWORK = {
     },
 }
 SPECTACULAR_SETTINGS = {
+    'AUTHENTICATION_EXTENSIONS': [
+        'accounts.auth.CustomJWTAuthenticationExtension',
+    ],
     'TITLE': 'DrGame APIs',
     'DESCRIPTION': 'Docs for DrGame',
     'VERSION': 'v1',
@@ -172,12 +175,13 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_SECURE': False,
     'AUTH_COOKIE_SAMESITE': 'Lax',
 }
-CORS_ORIGIN_ALLOW = [
-    'localhost:3000',
-    'localhost:5173',
-    'localhost:8000',
-    'gamedr.ir',
-]
+# CORS_ORIGIN_ALLOW = [
+#     'localhost:3000',
+#     'localhost:5173',
+#     'localhost:8000',
+#     'gamedr.ir',
+# ]
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
