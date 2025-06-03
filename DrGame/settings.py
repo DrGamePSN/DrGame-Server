@@ -188,6 +188,17 @@ SIMPLE_JWT = {
 #     'gamedr.ir',
 # ]
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-api-key',  # هدر سفارشی شما
+]
 CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
