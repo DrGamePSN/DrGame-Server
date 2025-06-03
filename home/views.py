@@ -39,8 +39,8 @@ class CartItemListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
 
 class CartItemDetailAPIView(generics.RetrieveAPIView):
@@ -48,8 +48,8 @@ class CartItemDetailAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
 
 class CartItemAddCreateAPIView(generics.CreateAPIView):
@@ -57,8 +57,8 @@ class CartItemAddCreateAPIView(generics.CreateAPIView):
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def get_serializer_context(self):
         return {'cart': self.kwargs.get('id')}
@@ -77,8 +77,8 @@ class CartItemUpdateAPIView(generics.UpdateAPIView):
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def get_serializer_context(self):
         return {'item_id': self.kwargs.get('pk')}
@@ -103,8 +103,8 @@ class CartItemDeleteAPIView(generics.DestroyAPIView):
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def delete(self, request, *args, **kwargs):
         cart = self.kwargs.get('id')
@@ -213,6 +213,7 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
     serializer_class = UpdateBlogPostSerializer
     permission_classes = [IsAdminUser]
     lookup_field = 'slug'
+
     # http_method_names = ['patch']
     def put(self, request, *args, **kwargs):
         post_slug = self.kwargs.get('slug')
@@ -222,8 +223,6 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
         updated_item = updated_serializer.save()
         serializer = BlogPostDetailSerializer(updated_item)
         return Response(serializer.data)
-
-
 
 
 class BlogPostDeleteAPIView(generics.DestroyAPIView):
@@ -257,6 +256,7 @@ class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
     serializer_class = BlogPostDetailSerializer
     permission_classes = [AllowAny]
     lookup_field = 'slug'
+
     def get_queryset(self):
         category_slug = self.kwargs.get('category_slug')
         return BlogPost.objects.filter(
@@ -275,6 +275,30 @@ class AboutUsRetrieveAPIView(generics.RetrieveAPIView):
         return obj
 
 
+class AboutUsCreateAPIView(generics.CreateAPIView):
+    serializer_class = AboutUsSerializer
+    permission_classes = [IsAdminUser]
+
+    queryset = AboutUs.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        if AboutUs.objects.count() >= 1:
+            return Response(
+                {'error': 'Only one AboutUs entry allowed. Please delete existing entries first.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
+
+
+class AboutUsDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = AboutUsSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_object(self):
+        obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
+        return obj
+
+
 class AboutUsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = AboutUsSerializer
     permission_classes = [IsAdminUser]
@@ -287,6 +311,37 @@ class AboutUsUpdateAPIView(generics.UpdateAPIView):
 
 class ContactUsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ContactUsSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
+        return obj
+
+
+class ContactUsCreateAPIView(generics.CreateAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
+    queryset = ContactUs.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        if ContactUs.objects.count() >= 1:
+            return Response(
+                {'error': 'Only one ContactUs entry allowed. Please delete existing entries first.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
+
+class ContactUsUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
+    http_method_names = ['put']
+
+    def get_object(self):
+        obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
+        return obj
+
+class ContactUsDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
 
     def get_object(self):
         obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
