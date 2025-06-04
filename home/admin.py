@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Cart, CartItem, BlogCategory, BlogPost, ContactUs, AboutUs, ContactSubmission, BlogTag
+from .models import Cart, CartItem, BlogCategory, BlogPost, ContactUs, AboutUs, ContactSubmission, BlogTag, Course, \
+    Video, CourseOrder
 
 
 @admin.register(Cart)
@@ -17,15 +18,16 @@ class BlogCategoryAdmin(admin.ModelAdmin):
     list_display = ['id', 'slug', 'name', 'created_at', 'is_deleted']
     prepopulated_fields = {'slug': ('name',)}
 
+
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
     list_display = ['id', 'slug', 'title', 'category', 'author', 'status', 'created_at']
     prepopulated_fields = {'slug': ('title',)}
 
+
 @admin.register(BlogTag)
 class BlogTagAdmin(admin.ModelAdmin):
-
-    list_display = ['id', 'name' , 'slug']
+    list_display = ['id', 'name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
 
@@ -53,3 +55,22 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
         return obj.message[:100] + '...' if len(obj.subject) > 10 else obj.message
 
     message_preview.short_description = 'Message'
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title', 'slug', 'description', 'price', 'status', 'created_at', 'updated_at', ]
+    prepopulated_fields = {'slug': ('title',)}
+
+
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title', 'slug', 'description', 'status', 'course', 'duration', 'priority', 'created_at',
+                    'updated_at', ]
+    prepopulated_fields = {'slug': ('title',)}
+    ordering = ['priority']
+
+
+@admin.register(CourseOrder)
+class CourseOrderAdmin(admin.ModelAdmin):
+    list_display = ['user', 'course', 'payment_status', 'price', 'created_at', 'updated_at']

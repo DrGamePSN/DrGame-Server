@@ -66,6 +66,7 @@ class BlogCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class BlogTag(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="نام تگ")
     slug = models.SlugField(max_length=100, unique=True, allow_unicode=True, verbose_name="اسلاگ")
@@ -82,16 +83,19 @@ class BlogTag(models.Model):
     def __str__(self):
         return self.name
 
+
 class BlogPost(models.Model):
     STATUS_CHOICES = (
         ('draft', 'پیش‌نویس'),
         ('published', 'منتشر شده'),
     )
 
-    title = models.CharField(max_length=200,unique=True, verbose_name= "عنوان")
+    title = models.CharField(max_length=200, unique=True, verbose_name="عنوان")
     slug = models.SlugField(max_length=250, unique=True, allow_unicode=True, verbose_name="اسلاگ")
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts', verbose_name="نویسنده")
-    category = models.ForeignKey(BlogCategory, on_delete=models.SET_NULL, null=True, related_name='posts', verbose_name="دسته‌بندی")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts',
+                               verbose_name="نویسنده")
+    category = models.ForeignKey(BlogCategory, on_delete=models.SET_NULL, null=True, related_name='posts',
+                                 verbose_name="دسته‌بندی")
     tags = models.ManyToManyField(BlogTag, blank=True, related_name='posts', verbose_name="تگ‌ها")
     content = models.TextField(verbose_name="محتوا")
     featured_image = models.ImageField(upload_to='blog_images/', blank=True, null=True, verbose_name="تصویر شاخص")
@@ -113,7 +117,6 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
-
 
 
 # about us & contact us models
@@ -181,3 +184,74 @@ class ContactSubmission(models.Model):
 
     def __str__(self):
         return f'{self.email} : {self.subject}'
+
+
+# Course Models
+
+class Course(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+    title = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
+    description = RichTextField()
+    course_image = models.ImageField(upload_to='course/')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title, allow_unicode=True)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class Video(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('private', 'Private'),
+    ]
+    title = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
+    description = RichTextField(blank=True)
+    video_file = models.FileField(upload_to='videos/')
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='videos')
+    duration = models.DurationField()
+    priority = models.PositiveIntegerField(unique=True, verbose_name='video order')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title, allow_unicode=True)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.title} - {self.course.title}'
+
+
+class CourseOrder(models.Model):
+    PAYMENT_STATUS = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='orders')
+    payment_status = models.CharField(choices=PAYMENT_STATUS, max_length=10 , default='pending')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'Order #{self.id} - {self.user} - {self.course}'
