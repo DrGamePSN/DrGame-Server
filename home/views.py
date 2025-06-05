@@ -1,5 +1,6 @@
 from unicodedata import category
 
+from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -10,8 +11,11 @@ from rest_framework import status
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
     CartCreateSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
-    BlogPostDetailSerializer, BlogPostListSerializer
-from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag
+    BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
+    CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
+    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer
+from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
+    Video, CourseOrder
 
 
 # cart
@@ -330,6 +334,7 @@ class ContactUsCreateAPIView(generics.CreateAPIView):
             )
         return super().create(request, *args, **kwargs)
 
+
 class ContactUsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = ContactUsSerializer
     permission_classes = [IsAdminUser]
@@ -338,6 +343,7 @@ class ContactUsUpdateAPIView(generics.UpdateAPIView):
     def get_object(self):
         obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
         return obj
+
 
 class ContactUsDeleteAPIView(generics.DestroyAPIView):
     serializer_class = ContactUsSerializer
@@ -355,3 +361,143 @@ class ContactSubmissionCreateAPIView(generics.CreateAPIView):
 
     def get_serializer_context(self):
         return {'user_id': self.request.user.id}
+
+
+# Video Course
+
+class CourseListAPIView(generics.ListAPIView):
+    serializer_class = CourseListCreateSerializer
+    queryset = Course.objects.filter(status='published').prefetch_related('videos').all()
+
+
+class CourseRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = CourseRetrieveSerializer
+    queryset = Course.objects.filter(status='published').prefetch_related(Prefetch(
+        'videos',
+        queryset=Video.objects.filter(status='published').order_by('priority')
+    )).all()
+    lookup_field = 'slug'
+
+
+class CourseCreateAPIView(generics.CreateAPIView):
+    serializer_class = CourseListCreateSerializer
+    queryset = Course.objects.all()
+    permission_classes = [IsAdminUser]
+
+
+class CourseUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = CourseUpdateSerializer
+    queryset = Course.objects.all()
+    lookup_field = 'slug'
+    permission_classes = [IsAdminUser]
+
+
+class CourseDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = CourseListCreateSerializer
+    queryset = Course.objects.all()
+    lookup_field = 'slug'
+    permission_classes = [IsAdminUser]
+
+
+# Video
+
+class VideoListAPIView(generics.ListAPIView):
+    serializer_class = VideoSerializer
+
+    def get_queryset(self):
+        course_slug = self.kwargs.get('course_slug')
+        return Video.objects.filter(course__slug=course_slug, status='published').select_related('course').order_by(
+            'priority').all()
+
+
+class VideoRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = VideoSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        course_slug = self.kwargs.get('course_slug')
+        return Video.objects.filter(course__slug=course_slug, status='published').select_related('course').order_by(
+            'priority').all()
+
+
+class VideoCreateAPIView(generics.CreateAPIView):
+    serializer_class = VideoCreateSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        course_slug = self.kwargs.get('course_slug')
+        return Video.objects.select_related('course').filter(course__slug=course_slug).all()
+
+    def get_serializer_context(self):
+        course_slug = self.kwargs.get('course_slug')
+        return {'course': Course.objects.get(slug=course_slug)}
+
+
+class VideoUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = VideoUpdateSerializer
+    lookup_field = 'slug'
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        course_slug = self.kwargs.get('course_slug')
+        return Video.objects.select_related('course').filter(course__slug=course_slug).all()
+
+
+class VideoDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = VideoSerializer
+    lookup_field = 'slug'
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        course_slug = self.kwargs.get('course_slug')
+        return Video.objects.select_related('course').filter(course__slug=course_slug).all()
+
+
+# Course Order
+
+class CourseOrderListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return CourseOrderForAdminSerializer
+        return CourseOrderSerializer
+
+    def get_queryset(self):
+        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+
+
+class CourseOrderRetrieveAPIView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return CourseOrderForAdminSerializer
+        return CourseOrderSerializer
+
+    def get_queryset(self):
+        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+
+
+class CourseOrderCreateAPIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CourseOrderCreateSerializer
+
+    def get_queryset(self):
+        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+
+
+class CourseOrderUpdateAPIView(generics.UpdateAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = CourseOrderUpdateSerializer
+
+    def get_queryset(self):
+        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+
+
+class CourseOrderDeleteAPIView(generics.DestroyAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = CourseOrderSerializer
+
+    def get_queryset(self):
+        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()

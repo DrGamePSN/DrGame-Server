@@ -230,7 +230,7 @@ class Course(models.Model):
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
     description = RichTextField()
-    course_image = models.ImageField(upload_to='course/')
+    course_image = models.ImageField(upload_to='course/', )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(choices=STATUS_CHOICES, max_length=10)
 
@@ -255,7 +255,7 @@ class Video(models.Model):
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
     description = RichTextField(blank=True)
-    video_file = models.FileField(upload_to='videos/')
+    video_file = models.FileField(upload_to='videos/', )
     status = models.CharField(choices=STATUS_CHOICES, max_length=10)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='videos')
     duration = models.DurationField()
@@ -281,7 +281,7 @@ class CourseOrder(models.Model):
     ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='orders')
-    payment_status = models.CharField(choices=PAYMENT_STATUS, max_length=10 , default='pending')
+    payment_status = models.CharField(choices=PAYMENT_STATUS, max_length=10, default='pending')
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     created_at = models.DateTimeField(auto_now_add=True)
