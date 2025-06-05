@@ -267,64 +267,168 @@ class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['id', 'title', 'slug', 'description', 'video_url', 'status', 'course', 'duration', 'priority',
+        fields = ['id', 'title', 'slug', 'description', 'video_url', 'status', 'duration', 'priority',
                   'updated_at', ]
+        read_only_fields = ['slug']
 
     def get_video_url(self, obj):
         request = self.context.get('request')
-        user = request.user
+        user = request.user if request else None
 
         if user and user.is_authenticated:
-            course = obj.course
-            has_purchased = CourseOrder.objects.filter(
-                user=user,
-                course=course,
-                payment_status='completed'
-            ).exists()
-
+            has_purchased = self.context.get('has_purchased', False)
             if has_purchased or user.is_staff:
                 if obj.video_file and hasattr(obj.video_file, 'url'):
                     return request.build_absolute_uri(obj.video_file.url)
-            return None
-    # def create(self, validated_data):
-    #     blog_tag = BlogTag(**validated_data)
-    #     blog_tag.slug = slugify(blog_tag.name, allow_unicode=True)
-    #     blog_tag.save()
-    #     return blog_tag
-    #
-    # def update(self, instance, validated_data):
-    #     instance.name = validated_data.get('name', instance.name)
-    #     instance.slug = slugify(instance.name, allow_unicode=True)
-    #     instance.save()
-    #     return instance
+        return None
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    videos = VideoSerializer(many=True, read_only=True)
+class VideoCreateSerializer(VideoSerializer):
+    class Meta(VideoSerializer.Meta):
+        fields = VideoSerializer.Meta.fields + ['video_file']
+
+    def create(self, validated_data):
+        video = Video(**validated_data)
+        video.slug = slugify(video.title, allow_unicode=True)
+        video.course = self.context.get('course')
+        video.save()
+        return video
+
+
+class VideoUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ['id', 'title', 'slug', 'description', 'status', 'duration', 'priority',
+                  'video_file']
+        read_only_fields = ['slug']
+        extra_kwargs = {
+            'title': {'required': False},
+            'description': {'required': False},
+            'video_file': {'required': False},
+            'status': {'required': False},
+            'duration': {'required': False},
+            'priority': {'required': False},
+        }
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = slugify(instance.title, allow_unicode=True)
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        instance.save()
+        return instance
+
+
+class CourseListCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['title', 'slug', 'description', 'course_image',
+                  'price', 'status', 'updated_at']
+        read_only_fields = ['slug']
+
+    def create(self, validated_data):
+        course_obj = Course(**validated_data)
+        course_obj.slug = slugify(course_obj.title, allow_unicode=True)
+        course_obj.save()
+        return course_obj
+
+
+class CourseRetrieveSerializer(serializers.ModelSerializer):
+    videos = serializers.SerializerMethodField()
+    has_purchased = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['title', 'slug', 'description', 'course_image', 'price', 'status', 'videos', 'updated_at', ]
+        fields = ['title', 'slug', 'description', 'course_image', 'videos', 'price',
+                  'status', 'updated_at', 'has_purchased']
 
-    # def create(self, validated_data):
-    #     blog_tag = BlogTag(**validated_data)
-    #     blog_tag.slug = slugify(blog_tag.name, allow_unicode=True)
-    #     blog_tag.save()
-    #     return blog_tag
-    #
-    # def update(self, instance, validated_data):
-    #     instance.name = validated_data.get('name', instance.name)
-    #     instance.slug = slugify(instance.name, allow_unicode=True)
-    #     instance.save()
-    #     return instance
+    def get_has_purchased(self, obj):
+        request = self.context.get('request')
+        user = request.user if request else None
+
+        if user and user.is_staff:
+            return True
+        if user and user.is_authenticated:
+            return CourseOrder.objects.filter(
+                course=obj,
+                user=user,
+                payment_status='completed'
+            ).exists()
+        return False
+
+    def get_videos(self, obj):
+        has_purchased = self.get_has_purchased(obj)
+        context = self.context.copy()
+        context['has_purchased'] = has_purchased
+
+        return VideoSerializer(
+            obj.videos.all(),
+            many=True,
+            context=context,
+        ).data
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        return representation
+
+
+class CourseUpdateSerializer(CourseListCreateSerializer):
+    class Meta(CourseListCreateSerializer.Meta):
+        fields = CourseListCreateSerializer.Meta.fields
+        extra_kwargs = {
+            'title': {'required': False},
+            'description': {'required': False},
+            'course_image': {'required': False},
+            'price': {'required': False},
+            'status': {'required': False},
+
+        }
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.slug = slugify(instance.title, allow_unicode=True)
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.save()
+        return instance
+
 
 class CourseOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseOrder
+        fields = ['id', 'course', 'payment_status', 'price', 'created_at', 'updated_at', ]
+        read_only_fields = ['payment_status', 'user']
+
+
+class CourseOrderForAdminSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='user.phone')
 
     class Meta:
         model = CourseOrder
-        fields = ['id','user','course','payment_status','price','created_at','updated_at',]
-        read_only_fields = ['payment_status','user']
+        fields = ['id', 'user', 'course', 'payment_status', 'price', 'created_at', 'updated_at', ]
+        read_only_fields = ['payment_status', 'user']
 
+
+class CourseOrderCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseOrder
+        fields = ['course']
+
+    def validate(self, data):
+        course = data['course']
+        if CourseOrder.objects.get(course = course):
+            raise serializers.ValidationError('You have already bought this course!')
     def create(self, validated_data):
-        user_id = self.context.get('user_id')
-        return CourseOrder.objects.create(user_id = user_id , **validated_data)
+        request = self.context.get('request')
+        user_id = request.user.id
+        course = validated_data.get('course')
+        return CourseOrder.objects.create(user_id=user_id,
+                                          price=course.price,
+                                          **validated_data)
+
+class CourseOrderUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseOrder
+        fields = ['payment_status']
