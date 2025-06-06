@@ -8,3 +8,4 @@ from customers.models import Customer
 def create_customer_after_login(sender, instance, created, **kwargs):
     if created:
         Customer.objects.create(user = instance)
+

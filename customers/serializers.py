@@ -26,6 +26,25 @@ class BusinessCustomerUpgradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessCustomer
         fields = ['full_name', 'license', 'address', 'profile_pic']
+        extra_kwargs = {
+            'license': {'required': True}
+        }
+
+    def validate(self, data):
+        request = self.context.get('request')
+        user = request.user
+        if BusinessCustomer.objects.filter(user=user).exists():
+            raise serializers.ValidationError('You are already a business customer')
+        if data['license'] is '' or data['license'] is None:
+            raise serializers.ValidationError('Please provide a license as a business customer')
+        if data['full_name'] is '' or data['full_name'] is None:
+            raise serializers.ValidationError('Please type your name')
+        return data
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        return BusinessCustomer.objects.create(user=user, **validated_data)
 
 
 class OrderSerializer(serializers.ModelSerializer):

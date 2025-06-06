@@ -15,8 +15,7 @@ class Customer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.full_name
-
+        return str(self.full_name) if self.full_name else f"Customer {self.id}"
 
 class BusinessCustomer(models.Model):
     full_name = models.CharField(max_length=50, null=True, blank=True)
@@ -29,4 +28,4 @@ class BusinessCustomer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.full_name
+        return str(self.full_name) if self.full_name else f"Customer {self.id}"
