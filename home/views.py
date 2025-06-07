@@ -1,7 +1,7 @@
-from django.db.models import Prefetch
+from unicodedata import category
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
@@ -14,34 +14,10 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag
 
 
-# permissions
-
-class PermissionsMixin:
-    """Mixin for cart permission checks"""
-
-    def get_cart_or_404(self, cart_id):
-        cart = get_object_or_404(Cart.objects.select_related('user').prefetch_related('cart_items__product__color'),
-                                 id=cart_id, is_deleted=False)
-        if cart.user and cart.user != self.request.user:
-            raise PermissionDenied("این سبد خرید متعلق به شما نیست")
-        if cart.session_key and cart.session_key != self.request.session.session_key:
-            raise PermissionDenied("این سبد خرید متعلق به شما نیست(session)")
-        return cart
-
-
 # cart
-class CartDetailAPIView(PermissionsMixin, generics.RetrieveAPIView):
+class CartDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
-
-    queryset = Cart.objects.select_related('user').prefetch_related(Prefetch(
-        'cart_items',
-        queryset=CartItem.objects.select_related('product__color')
-    ))
-
+    queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
     lookup_field = 'id'
 
 
@@ -49,60 +25,40 @@ class CartCreateAPIView(generics.CreateAPIView):
     serializer_class = CartCreateSerializer
     queryset = Cart.objects.filter(is_deleted=False).all()
 
-    def get_serializer_context(self):
-        return {'request': self.request}
 
-
-class CartDeleteAPIView(PermissionsMixin, generics.DestroyAPIView):
+class CartDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CartSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
-
     queryset = Cart.objects.filter(is_deleted=False).all()
     lookup_field = 'id'
 
 
 # cart-item
 
-class CartItemListAPIView(PermissionsMixin, generics.ListAPIView):
+class CartItemListAPIView(generics.ListAPIView):
     serializer_class = CartItemSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart__user').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
 
-class CartItemDetailAPIView(PermissionsMixin, generics.RetrieveAPIView):
+class CartItemDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartItemSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart__user').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
 
-class CartItemAddCreateAPIView(PermissionsMixin, generics.CreateAPIView):
+class CartItemAddCreateAPIView(generics.CreateAPIView):
     serializer_class = AddCartItemSerializer
 
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
-
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart__user').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def get_serializer_context(self):
         return {'cart': self.kwargs.get('id')}
@@ -116,17 +72,13 @@ class CartItemAddCreateAPIView(PermissionsMixin, generics.CreateAPIView):
         return Response(serializer.data)
 
 
-class CartItemUpdateAPIView(PermissionsMixin, generics.UpdateAPIView):
+class CartItemUpdateAPIView(generics.UpdateAPIView):
     serializer_class = UpdateCartItemSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart__user').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def get_serializer_context(self):
         return {'item_id': self.kwargs.get('pk')}
@@ -146,17 +98,13 @@ class CartItemUpdateAPIView(PermissionsMixin, generics.UpdateAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class CartItemDeleteAPIView(PermissionsMixin, generics.DestroyAPIView):
+class CartItemDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CartItemSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        self.get_cart_or_404(self.kwargs['id'])
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'cart').
-                filter(cart=cart, is_deleted=False).all())
+        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
+                                                                                                     is_deleted=False))
 
     def delete(self, request, *args, **kwargs):
         cart = self.kwargs.get('id')
@@ -327,6 +275,30 @@ class AboutUsRetrieveAPIView(generics.RetrieveAPIView):
         return obj
 
 
+class AboutUsCreateAPIView(generics.CreateAPIView):
+    serializer_class = AboutUsSerializer
+    permission_classes = [IsAdminUser]
+
+    queryset = AboutUs.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        if AboutUs.objects.count() >= 1:
+            return Response(
+                {'error': 'Only one AboutUs entry allowed. Please delete existing entries first.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
+
+
+class AboutUsDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = AboutUsSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_object(self):
+        obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
+        return obj
+
+
 class AboutUsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = AboutUsSerializer
     permission_classes = [IsAdminUser]
@@ -339,6 +311,37 @@ class AboutUsUpdateAPIView(generics.UpdateAPIView):
 
 class ContactUsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ContactUsSerializer
+
+    def get_object(self):
+        obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
+        return obj
+
+
+class ContactUsCreateAPIView(generics.CreateAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
+    queryset = ContactUs.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        if ContactUs.objects.count() >= 1:
+            return Response(
+                {'error': 'Only one ContactUs entry allowed. Please delete existing entries first.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().create(request, *args, **kwargs)
+
+class ContactUsUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
+    http_method_names = ['put']
+
+    def get_object(self):
+        obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
+        return obj
+
+class ContactUsDeleteAPIView(generics.DestroyAPIView):
+    serializer_class = ContactUsSerializer
+    permission_classes = [IsAdminUser]
 
     def get_object(self):
         obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))

@@ -45,8 +45,14 @@ urlpatterns = [
 
     # ==================== Content Pages ====================
     path('about-us/', views.AboutUsRetrieveAPIView.as_view(), name='about-us'),
+    path('about-us/add/', views.AboutUsCreateAPIView.as_view(), name='about-us-create'),
     path('about-us/update/', views.AboutUsUpdateAPIView.as_view(), name='about-us-update'),
+    path('about-us/delete/', views.AboutUsDeleteAPIView.as_view(), name='about-us-delete'),
 
     path('contact-us/', views.ContactUsRetrieveAPIView.as_view(), name='contact-us'),
+    path('contact-us/add/', views.ContactUsCreateAPIView.as_view(), name='contact-us-create'),
+    path('contact-us/update/', views.ContactUsUpdateAPIView.as_view(), name='contact-us-update'),
+    path('contact-us/delete/', views.ContactUsDeleteAPIView.as_view(), name='contact-us-delete'),
+
     path('contact/submit/', views.ContactSubmissionCreateAPIView.as_view(), name='contact-submit'),
 ]
