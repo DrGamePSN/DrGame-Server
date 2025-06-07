@@ -1,4 +1,3 @@
-modeels.py
 
 from django.core.validators import EmailValidator
 from django.conf import settings
