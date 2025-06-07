@@ -1,3 +1,5 @@
+modeels.py
+
 from django.core.validators import EmailValidator
 from django.conf import settings
 from django.db import models
@@ -10,51 +12,17 @@ from storage.models import Product, ProductColor
 
 
 # Shopping
-
-class CartManager(models.Manager):
-    def get_user_cart(self, request):
-        if request.user.is_authenticated:
-            cart, created = self.get_or_create(user=request.user)
-        else:
-            if not request.session.session_key:
-                request.session.create()
-            cart, created = self.get_or_create(session_key=request.session.session_key,
-                                               is_deleted=False,
-                                               user=None,
-                                               )
-
-        return cart
-
-
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    session_key = models.CharField(max_length=40, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
-    objects = CartManager()
-
-    class Meta:
-        unique_together = [['user'], ['session_key']]
 
     def __str__(self):
-        if self.user:
-            return f"Cart for {self.user.username}"
-        return f"Cart (session: {self.session_key})"
+        return str(self.id)
 
     @property
     def total_price(self):
         return sum(item.product.price * item.quantity for item in self.cart_items.all())
-
-
-
-# Cart.objects = CartManager()
 
 
 class CartItem(models.Model):
