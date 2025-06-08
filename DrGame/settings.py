@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_redis',
     'storages',
-    'ckeditor',
     'django_filters',
     'debug_toolbar',  # for debug
 ]
