@@ -164,17 +164,21 @@ class VerifyOTPView(APIView):
             key='access_token',
             value=access_token,
             httponly=True,
-            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
-            max_age=3600
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            max_age=3600,
+            path='/',
+            domain='localhost'  # برای لوکال
         )
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
-            max_age=432000
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            max_age=432000,
+            path='/',
+            domain='localhost'
         )
 
         return response
