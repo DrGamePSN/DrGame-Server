@@ -8,6 +8,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+
+from storage.models import Game
+from storage.serializers import GameSerializer
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
     CartCreateSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
@@ -17,6 +20,16 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
     Video, CourseOrder
 
+
+# trending games
+
+class GameTrendListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_trend=True).all()
+
+class GameTrendRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_trend=True).all()
 
 # cart
 class CartDetailAPIView(generics.RetrieveAPIView):

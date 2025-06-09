@@ -115,12 +115,13 @@ class CustomerTransactionListAPIView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
 
+    def get_queryset(self):
+        return Transaction.objects.filter(
+            (Q(payer=self.request.user) | Q(receiver=self.request.user)),
+            is_deleted=False
+        ).select_related('transaction_type', 'game_order', 'repair_order', 'order').distinct()
 
-def get_queryset(self):
-    return Transaction.objects.filter(
-        (Q(payer=self.request.user) | Q(receiver=self.request.user)),
-        is_deleted=False
-    ).select_related('transaction_type', 'game_order', 'repair_order', 'order').distinct()
+
 
 
 class CustomerTransactionRetrieveAPIView(generics.RetrieveAPIView):
