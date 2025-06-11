@@ -55,11 +55,7 @@ INSTALLED_APPS = [
     'django_redis',
     'storages',
     'django_filters',
-<<<<<<< HEAD
-    'debug_toolbar'
-=======
     'debug_toolbar',  # for debug
->>>>>>> e8f2796
 ]
 
 MIDDLEWARE = [
@@ -71,13 +67,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-<<<<<<< HEAD
-
-    # debug
-    'debug_toolbar.middleware.DebugToolbarMiddleware'
-]
-=======
->>>>>>> e8f2796
 
     # debug config
     'debug_toolbar.middleware.DebugToolbarMiddleware',
@@ -249,9 +238,8 @@ STORAGES = {
 }
 INTERNAL_IPS = [
 
-    "127.0.0.1",
+    "127.0.0.1", ]
 
-<<<<<<< HEAD
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -287,13 +275,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-INTERNAL_IPS = [
-
-    "127.0.0.1",
-
-]
-=======
-]  # for debug
->>>>>>> e8f2796

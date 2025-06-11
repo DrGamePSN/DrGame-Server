@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Customer, BusinessCustomer
@@ -18,7 +18,6 @@ from django.db.models import Q
 
 
 class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         try:
@@ -37,7 +36,6 @@ class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
 
 class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
     serializer_class = BusinessCustomerUpgradeSerializer
-    permission_classes = [permissions.IsAuthenticated]
     queryset = BusinessCustomer.objects.select_related('user').all()
 
     def create(self, request, *args, **kwargs):
@@ -56,7 +54,6 @@ class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
 
 class CustomerOrderListAPIView(generics.ListAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -65,7 +62,6 @@ class CustomerOrderListAPIView(generics.ListAPIView):
 
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -74,7 +70,6 @@ class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
 
 class CustomerGameOrderListAPIView(generics.ListAPIView):
     serializer_class = GameOrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -83,7 +78,6 @@ class CustomerGameOrderListAPIView(generics.ListAPIView):
 
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameOrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -92,7 +86,6 @@ class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
 
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
     serializer_class = RepairOrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -101,7 +94,6 @@ class CustomerRepairOrderListAPIView(generics.ListAPIView):
 
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = RepairOrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -110,7 +102,6 @@ class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
 
 class CustomerTransactionListAPIView(generics.ListAPIView):
     serializer_class = TransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
@@ -122,11 +113,8 @@ class CustomerTransactionListAPIView(generics.ListAPIView):
         ).select_related('transaction_type', 'game_order', 'repair_order', 'order').distinct()
 
 
-
-
 class CustomerTransactionRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = TransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Transaction.objects.filter(
@@ -135,7 +123,6 @@ class CustomerTransactionRetrieveAPIView(generics.RetrieveAPIView):
         ).select_related('transaction_type', 'game_order', 'repair_order', 'order').distinct()
 
 # class CustomerProfileUpdateAPIView(generics.UpdateAPIView):
-#     permission_classes = [permissions.IsAuthenticated]
 #
 #     def get_object(self):
 #         try:
