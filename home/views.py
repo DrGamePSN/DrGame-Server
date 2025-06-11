@@ -8,8 +8,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 
-from storage.models import Game
-from storage.serializers import GameSerializer
+from storage.models import Game, Product, ProductCategory
+from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
     CartCreateSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
@@ -26,9 +26,73 @@ class GameTrendListAPIView(generics.ListAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_trend=True).all()
 
+
 class GameTrendRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_trend=True).all()
+
+
+# store
+
+class ProductListAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+        is_deleted=False).order_by('-created_at').all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['category', 'color', 'company', 'is_deleted']
+    search_fields = ['title', 'description']
+    ordering_fields = ['price', 'created_at', 'stock']
+    ordering = ['-created_at']
+
+
+class ProductRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+        is_deleted=False).all()
+
+
+# Game products
+class GameListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_deleted=False).prefetch_related('game_images').order_by('-created_at').all()
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at', 'is_trend']
+    ordering = ['-created_at']
+
+
+class GameRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_deleted=False).prefetch_related('game_images').all()
+
+
+# category
+class ProductCategoryListAPIView(generics.ListAPIView):
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.filter(is_deleted=False).prefetch_related(
+        Prefetch('products',
+                 queryset=Product.objects.select_related('company', 'color', 'category'))
+    ).all()
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'products__title']
+
+
+class ProductCategoryRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.filter(is_deleted=False).prefetch_related(
+        Prefetch('products',
+                 queryset=Product.objects.select_related('company', 'color', 'category'))
+    ).all()
+
+
+class ProductByCategoryRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        cat_id = self.kwargs.get('pro_category')
+        return Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+            is_deleted=False, category_id=cat_id).all()
+
 
 # cart
 class CartDetailAPIView(generics.RetrieveAPIView):

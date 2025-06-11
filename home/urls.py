@@ -5,6 +5,17 @@ from . import views
 # cart / cart-items / blog / contact / about
 
 urlpatterns = [
+
+    # ==================== Store URLs ====================
+    path('store/products/', views.ProductListAPIView.as_view(), name='store-product-list'),
+    path('store/products/<int:pk>/', views.ProductRetrieveAPIView.as_view(), name='store-product-detail'),
+
+    # ==================== Product Category URLs ====================
+    path('store/categories/', views.ProductCategoryListAPIView.as_view(), name='store-category-list'),
+    path('store/categories/<int:pk>/', views.ProductCategoryRetrieveAPIView.as_view(), name='store-category-detail'),
+    path('store/categories/<int:pro_category>/products/<int:pk>/', views.ProductByCategoryRetrieveAPIView.as_view(),
+         name='store-product-by-category-detail'),
+
     # ==================== Cart URLs ====================
     path('cart/', views.CartCreateAPIView.as_view(), name='cart-create'),
     path('cart/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
@@ -80,12 +91,12 @@ urlpatterns = [
     path('courses/orders/<int:pk>/update/', views.CourseOrderUpdateAPIView.as_view(), name='course-order-update'),
     path('courses/orders/<int:pk>/delete/', views.CourseOrderDeleteAPIView.as_view(), name='course-order-delete'),
 
-
-    # ==================== Game Trend URLs ====================
+    # ==================== Game URLs ====================
 
     # Game Trends List & Retrieve
+    path('games/', views.GameListAPIView.as_view(), name='game-list'),
+    path('games/<int:pk>/', views.GameRetrieveAPIView.as_view(), name='game-detail'),
     path('games/trending/', views.GameTrendListAPIView.as_view(), name='game-trending-list'),
     path('games/trending/<int:pk>/', views.GameTrendRetrieveAPIView.as_view(), name='game-trending-detail'),
-
 
 ]

@@ -43,7 +43,7 @@ class Product(models.Model):
     main_img = models.ImageField(null=True, blank=True, upload_to='main_img/products/')
     description = models.TextField(max_length=5000, null=True, blank=True)
     color = models.ForeignKey(ProductColor, on_delete=models.SET_NULL, null=True)
-    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
     company = models.ForeignKey(ProductCompany, on_delete=models.SET_NULL, null=True)
     price = models.DecimalField(decimal_places=5, max_digits=20)
     stock = models.IntegerField(default=0)
@@ -57,7 +57,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     img = models.ImageField(null=True, blank=True, upload_to='images/products/')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, related_name='images')
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -103,7 +103,6 @@ class Game(models.Model):
             if games_count >= 4:
                 raise ValidationError("Only 4 games can be marked as trending.")
 
-
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -114,7 +113,7 @@ class Game(models.Model):
 
 class GameImage(models.Model):
     img = models.ImageField(null=True, blank=True, upload_to='images/games/')
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True, related_name='game_images')
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
