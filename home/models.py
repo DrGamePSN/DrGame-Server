@@ -1,8 +1,8 @@
+
 from django.core.validators import EmailValidator
 from django.conf import settings
 from django.db import models
 from uuid import uuid4
-from ckeditor.fields import RichTextField
 from django.utils import timezone
 from slugify import slugify
 
@@ -124,7 +124,7 @@ class BlogPost(models.Model):
 class AboutUs(models.Model):
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255, blank=True)
-    content = RichTextField()
+    content = models.TextField()
 
     # Media
     banner_image = models.ImageField(upload_to='about/banners/', null=True, blank=True)
@@ -195,7 +195,11 @@ class Course(models.Model):
     ]
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
+<<<<<<< HEAD
     description = RichTextField()
+=======
+    description = models.TextField()
+>>>>>>> e8f2796
     course_image = models.ImageField(upload_to='course/', )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(choices=STATUS_CHOICES, max_length=10)
@@ -220,7 +224,11 @@ class Video(models.Model):
     ]
     title = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, )
+<<<<<<< HEAD
     description = RichTextField(blank=True)
+=======
+    description = models.TextField(blank=True)
+>>>>>>> e8f2796
     video_file = models.FileField(upload_to='videos/', )
     status = models.CharField(choices=STATUS_CHOICES, max_length=10)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='videos')

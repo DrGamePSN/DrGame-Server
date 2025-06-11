@@ -80,4 +80,13 @@ urlpatterns = [
     path('courses/orders/<int:pk>/update/', views.CourseOrderUpdateAPIView.as_view(), name='course-order-update'),
     path('courses/orders/<int:pk>/delete/', views.CourseOrderDeleteAPIView.as_view(), name='course-order-delete'),
 
+<<<<<<< HEAD
+=======
+    # ==================== Game Trend URLs ====================
+
+    # Game Trends List & Retrieve
+    path('games/trending/', views.GameTrendListAPIView.as_view(), name='game-trending-list'),
+    path('games/trending/<int:pk>/', views.GameTrendRetrieveAPIView.as_view(), name='game-trending-detail'),
+
+>>>>>>> e8f2796
 ]

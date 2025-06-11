@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
@@ -27,9 +28,7 @@ SECRET_KEY = 'django-insecure-v@c4&8=y8(u%c_690yq0d$ulwcp!zvnb#f^^t$&@jljc#!#n-e
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'gamedr.ir', 'www.gamedr.ir']
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # local apps
     'accounts',
+    'management',
     'employees',
     'storage',
     'payments',
@@ -48,40 +48,40 @@ INSTALLED_APPS = [
     'customers',
     # third-party apps
     'rest_framework',
+    'rest_framework_simplejwt',
+    'django_ratelimit',
+    'corsheaders',
     'drf_spectacular',
+    'django_redis',
     'storages',
-    'ckeditor',
     'django_filters',
+<<<<<<< HEAD
     'debug_toolbar'
+=======
+    'debug_toolbar',  # for debug
+>>>>>>> e8f2796
 ]
-
-AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+<<<<<<< HEAD
 
     # debug
     'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
+=======
+>>>>>>> e8f2796
 
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'COERCE_DECIMAL_TO_STRING': False,
-    'PAGE_SIZE': 10,
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-}
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'DrGame APIs',
-    'DESCRIPTION': 'Docs for DrGame',
-    'VERSION': 'v1',
-    'SERVE_INCLUDE_SCHEMA': True,
-}
+    # debug config
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
 ROOT_URLCONF = 'DrGame.urls'
 
 TEMPLATES = [
@@ -105,11 +105,122 @@ WSGI_APPLICATION = 'DrGame.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
+}
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'Asia/Tehran'
+USE_I18N = True
+
+USE_TZ = True
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'COERCE_DECIMAL_TO_STRING': False,
+    'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '2000/hour',
+    },
+}
+SPECTACULAR_SETTINGS = {
+    'AUTHENTICATION_EXTENSIONS': [
+        'accounts.auth.CustomJWTAuthenticationExtension',
+    ],
+    'TITLE': 'DrGame APIs',
+    'DESCRIPTION': 'Docs for DrGame',
+    'VERSION': 'v1',
+    'SERVE_INCLUDE_SCHEMA': True,
+}
+CACHES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_COOKIE': 'access_token',
+    'AUTH_COOKIE_REFRESH': 'refresh_token',
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_SECURE': False,
+    'AUTH_COOKIE_SAMESITE': 'Lax',
+}
+# CORS_ORIGIN_ALLOW = [
+#     'localhost:3000',
+#     'localhost:5173',
+#     'localhost:8000',
+#     'gamedr.ir',
+# ]
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-api-key',  # هدر سفارشی شما
+]
+CORS_ALLOW_CREDENTIALS = True
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 0  # 1 سال HSTS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+RATELIMIT_CACHE_BACKEND = 'default'
+
 # media root
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -136,10 +247,11 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+INTERNAL_IPS = [
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+    "127.0.0.1",
 
+<<<<<<< HEAD
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -182,3 +294,6 @@ INTERNAL_IPS = [
     "127.0.0.1",
 
 ]
+=======
+]  # for debug
+>>>>>>> e8f2796
