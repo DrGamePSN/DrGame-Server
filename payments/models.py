@@ -1,7 +1,10 @@
 from django.db import models
+
+from home.models import Course
 from storage.models import CustomerConsole
 from accounts.models import CustomUser
 from customers.models import Customer
+from django.conf import settings
 
 
 # Create your models here.
@@ -80,6 +83,18 @@ class RepairOrder(models.Model):
         return f'سفارش {self.customer.full_name} بابت {self.order_type.title}'
 
 
+class CourseOrder(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='orders')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'Order #{self.id} - {self.user} - {self.course}'
+
+
 class TransactionType(models.Model):
     title = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
@@ -104,6 +119,7 @@ class Transaction(models.Model):
     ))
     game_order = models.ForeignKey(GameOrder, on_delete=models.SET_NULL, null=True, related_name='game_order')
     repair_order = models.ForeignKey(RepairOrder, on_delete=models.SET_NULL, null=True, related_name='repair_order')
+    course_order = models.ForeignKey(CourseOrder, on_delete=models.SET_NULL, null=True, related_name='course_order')
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, related_name='order')
     description = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)

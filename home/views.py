@@ -528,7 +528,6 @@ class HomeBannerListView(generics.ListAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
 
-
 class HomeBannerCreateView(generics.CreateAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
@@ -536,7 +535,6 @@ class HomeBannerCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.full_clean()
-
 
 class HomeBannerDetailView(generics.RetrieveAPIView):
     serializer_class = HomeBannerSerializer
@@ -551,52 +549,7 @@ class HomeBannerUpdateView(generics.UpdateAPIView):
         instance = serializer.save()
         instance.full_clean()
 
-
 class HomeBannerDeleteView(generics.DestroyAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
 
-
-# Course Order
-
-class CourseOrderListAPIView(generics.ListAPIView):
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return CourseOrderForAdminSerializer
-        return CourseOrderSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
-
-
-class CourseOrderRetrieveAPIView(generics.RetrieveAPIView):
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return CourseOrderForAdminSerializer
-        return CourseOrderSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
-
-
-class CourseOrderCreateAPIView(generics.CreateAPIView):
-    serializer_class = CourseOrderCreateSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
-
-
-class CourseOrderUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = CourseOrderUpdateSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
-
-
-class CourseOrderDeleteAPIView(generics.DestroyAPIView):
-    serializer_class = CourseOrderSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
