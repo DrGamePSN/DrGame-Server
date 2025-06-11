@@ -47,6 +47,7 @@ class Product(models.Model):
     company = models.ForeignKey(ProductCompany, on_delete=models.SET_NULL, null=True)
     price = models.DecimalField(decimal_places=5, max_digits=20)
     stock = models.IntegerField(default=0)
+    units_sold = models.PositiveIntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -93,6 +94,7 @@ class Game(models.Model):
     main_img = models.ImageField(null=True, blank=True, upload_to="main_img/game/")
     description = models.TextField(max_length=5000, null=True, blank=True)
     is_trend = models.BooleanField(default=False)
+    units_sold = models.PositiveIntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -100,7 +102,7 @@ class Game(models.Model):
     def clean(self):
         if self.is_trend:
             games_count = Game.objects.filter(is_trend=True).count()
-            if games_count >= 4:
+            if games_count > 4:
                 raise ValidationError("Only 4 games can be marked as trending.")
 
     def save(self, *args, **kwargs):

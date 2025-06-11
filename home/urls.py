@@ -94,9 +94,13 @@ urlpatterns = [
     # ==================== Game URLs ====================
 
     # Game Trends List & Retrieve
-    path('games/', views.GameListAPIView.as_view(), name='game-list'),
-    path('games/<int:pk>/', views.GameRetrieveAPIView.as_view(), name='game-detail'),
-    path('games/trending/', views.GameTrendListAPIView.as_view(), name='game-trending-list'),
-    path('games/trending/<int:pk>/', views.GameTrendRetrieveAPIView.as_view(), name='game-trending-detail'),
+    path('store/games/', views.GameListAPIView.as_view(), name='game-list'),
+    path('store/games/<int:pk>/', views.GameRetrieveAPIView.as_view(), name='game-detail'),
+    path('store/games/trending/', views.GameTrendListAPIView.as_view(), name='game-trending-list'),
+    path('store/games/trending/<int:pk>/', views.GameTrendRetrieveAPIView.as_view(), name='game-trending-detail'),
+
+    # ==================== Most Sold URLs ====================
+    path('store/products/most-sold/', views.MostSoldProductsListAPIView.as_view(), name='most-sold-products-list'),
+    path('store/games/most-sold/', views.MostSoldGamesListAPIView.as_view(), name='most-sold-games-list'),
 
 ]

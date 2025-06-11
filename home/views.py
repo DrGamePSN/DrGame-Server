@@ -94,6 +94,23 @@ class ProductByCategoryRetrieveAPIView(generics.RetrieveAPIView):
             is_deleted=False, category_id=cat_id).all()
 
 
+# The most sold games and products
+
+class MostSoldProductsListAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+            is_deleted=False).order_by('-units_sold')[:10]
+
+
+class MostSoldGamesListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+
+    def get_queryset(self):
+        return Game.objects.filter(is_deleted=False).prefetch_related('game_images').order_by('-units_sold')[:2]
+
+
 # cart
 class CartDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer

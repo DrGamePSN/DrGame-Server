@@ -51,7 +51,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['title', 'main_img', 'images', 'description', 'color', 'category',
-                  'company', 'price', 'stock', 'created_at', ]
+                  'company', 'price', 'units_sold', 'stock', 'created_at', ]
 
 
 class GameImagesSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['title', 'main_img', 'game_images', 'description', 'is_trend',
+        fields = ['title', 'main_img', 'game_images', 'description', 'is_trend', 'units_sold',
                   'is_deleted', 'created_at', 'updated_at']
 
     def validate(self, data):
