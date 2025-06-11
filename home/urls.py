@@ -103,4 +103,12 @@ urlpatterns = [
     path('store/products/most-sold/', views.MostSoldProductsListAPIView.as_view(), name='most-sold-products-list'),
     path('store/games/most-sold/', views.MostSoldGamesListAPIView.as_view(), name='most-sold-games-list'),
 
+    # ==================== Banners ====================
+
+    path('banners/', views.HomeBannerListView.as_view(), name='banner-list'),
+    path('banners/create/', views.HomeBannerCreateView.as_view(), name='banner-create'),
+
+    path('banners/<int:pk>/', views.HomeBannerDetailView.as_view(), name='banner-detail'),
+    path('banners/<int:pk>/update/', views.HomeBannerUpdateView.as_view(), name='banner-update'),
+    path('banners/<int:pk>/delete/', views.HomeBannerDeleteView.as_view(), name='banner-delete'),
 ]

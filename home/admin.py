@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Cart, CartItem, BlogCategory, BlogPost, ContactUs, AboutUs, ContactSubmission, BlogTag, Course, \
-    Video, CourseOrder
+    Video, CourseOrder, HomeBanner
 
 
 @admin.register(Cart)
@@ -69,6 +69,14 @@ class VideoAdmin(admin.ModelAdmin):
                     'updated_at', ]
     prepopulated_fields = {'slug': ('title',)}
     ordering = ['priority']
+
+
+@admin.register(HomeBanner)
+class HomeBannerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_chosen', 'order')
+    list_editable = ('is_chosen', 'order')
+    list_filter = ('is_chosen',)
+    search_fields = ('title',)
 
 
 @admin.register(CourseOrder)

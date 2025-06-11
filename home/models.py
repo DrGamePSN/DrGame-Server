@@ -1,4 +1,4 @@
-
+from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.conf import settings
 from django.db import models
@@ -255,3 +255,22 @@ class CourseOrder(models.Model):
 
     def __str__(self):
         return f'Order #{self.id} - {self.user} - {self.course}'
+
+
+# Banner
+
+class HomeBanner(models.Model):
+    title = models.CharField(max_length=100, verbose_name="عنوان")
+    image = models.ImageField(upload_to='banners/', verbose_name="تصویر")
+    is_chosen = models.BooleanField(default=False, verbose_name="فعال")
+    order = models.PositiveIntegerField(default=0, unique=True, verbose_name="ترتیب")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        if self.is_chosen and HomeBanner.objects.filter(is_chosen=True).exclude(pk=self.pk).count() >= 3:
+            raise ValidationError("حداکثر ۳ بنر می‌توانند فعال باشند")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

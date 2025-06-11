@@ -15,9 +15,10 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
     BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
     CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
-    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer
+    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer, \
+    HomeBannerSerializer
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
-    Video, CourseOrder
+    Video, CourseOrder, HomeBanner
 
 
 # trending games
@@ -519,6 +520,41 @@ class VideoDeleteAPIView(generics.DestroyAPIView):
     def get_queryset(self):
         course_slug = self.kwargs.get('course_slug')
         return Video.objects.select_related('course').filter(course__slug=course_slug).all()
+
+
+# Banners
+
+class HomeBannerListView(generics.ListAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
+
+
+class HomeBannerCreateView(generics.CreateAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.full_clean()
+
+
+class HomeBannerDetailView(generics.RetrieveAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
+
+
+class HomeBannerUpdateView(generics.UpdateAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        instance.full_clean()
+
+
+class HomeBannerDeleteView(generics.DestroyAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
 
 # Course Order

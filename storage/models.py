@@ -101,9 +101,9 @@ class Game(models.Model):
 
     def clean(self):
         if self.is_trend:
-            games_count = Game.objects.filter(is_trend=True).count()
-            if games_count > 4:
-                raise ValidationError("Only 4 games can be marked as trending.")
+            games_count = Game.objects.filter(is_trend=True).exclude(pk = self.pk).count()
+            if games_count >= 4:
+                raise ValidationError("حداکثر ۴ بازی می‌توانند ترند باشند")
 
     def save(self, *args, **kwargs):
         self.full_clean()
