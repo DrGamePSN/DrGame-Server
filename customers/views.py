@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Customer, BusinessCustomer
@@ -10,11 +10,18 @@ from .serializers import (
     OrderSerializer,
     GameOrderSerializer,
     RepairOrderSerializer,
-    TransactionSerializer, BusinessCustomerProfileSerializer
+    TransactionSerializer, BusinessCustomerProfileSerializer, CustomerProfileCreateSerializer
 )
 
 from payments.models import Order, GameOrder, RepairOrder, Transaction
 from django.db.models import Q
+
+
+
+
+class CustomerProfileCreateAPIView(generics.CreateAPIView):
+    serializer_class = CustomerProfileCreateSerializer
+    queryset = Customer.objects.select_related('user').filter(is_deleted=False).all()
 
 
 class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
