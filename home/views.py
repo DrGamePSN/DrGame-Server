@@ -15,10 +15,9 @@ from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSe
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
     BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
     CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
-    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer, \
     HomeBannerSerializer
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
-    Video, CourseOrder, HomeBanner
+    Video, HomeBanner
 
 
 # trending games
