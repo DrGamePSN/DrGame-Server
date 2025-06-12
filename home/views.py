@@ -5,17 +5,111 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+
+from storage.models import Game, Product, ProductCategory
+from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
     CartCreateSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
     BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
     CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
-    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer
+    CourseOrderSerializer, CourseOrderForAdminSerializer, CourseOrderCreateSerializer, CourseOrderUpdateSerializer, \
+    HomeBannerSerializer
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
-    Video, CourseOrder
+    Video, CourseOrder, HomeBanner
+
+
+# trending games
+
+class GameTrendListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_trend=True).all()
+
+
+class GameTrendRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_trend=True).all()
+
+
+# store
+
+class ProductListAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+        is_deleted=False).order_by('-created_at').all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['category', 'color', 'company', 'is_deleted']
+    search_fields = ['title', 'description']
+    ordering_fields = ['price', 'created_at', 'stock']
+    ordering = ['-created_at']
+
+
+class ProductRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+        is_deleted=False).all()
+
+
+# Game products
+class GameListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_deleted=False).prefetch_related('game_images').order_by('-created_at').all()
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at', 'is_trend']
+    ordering = ['-created_at']
+
+
+class GameRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = GameSerializer
+    queryset = Game.objects.filter(is_deleted=False).prefetch_related('game_images').all()
+
+
+# category
+class ProductCategoryListAPIView(generics.ListAPIView):
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.filter(is_deleted=False).prefetch_related(
+        Prefetch('products',
+                 queryset=Product.objects.select_related('company', 'color', 'category'))
+    ).all()
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'products__title']
+
+
+class ProductCategoryRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.filter(is_deleted=False).prefetch_related(
+        Prefetch('products',
+                 queryset=Product.objects.select_related('company', 'color', 'category'))
+    ).all()
+
+
+class ProductByCategoryRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        cat_id = self.kwargs.get('pro_category')
+        return Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+            is_deleted=False, category_id=cat_id).all()
+
+
+# The most sold games and products
+
+class MostSoldProductsListAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
+            is_deleted=False).order_by('-units_sold')[:10]
+
+
+class MostSoldGamesListAPIView(generics.ListAPIView):
+    serializer_class = GameSerializer
+
+    def get_queryset(self):
+        return Game.objects.filter(is_deleted=False).prefetch_related('game_images').order_by('-units_sold')[:2]
 
 
 # cart
@@ -134,20 +228,17 @@ class BlogCategoryListAPIView(generics.ListAPIView):
 class BlogCategoryCreateAPIView(generics.CreateAPIView):
     queryset = BlogCategory.objects.filter(is_deleted=False).all()
     serializer_class = BlogCategorySerializer
-    permission_classes = [IsAdminUser]
 
 
 class BlogCategoryUpdateAPIView(generics.UpdateAPIView):
     queryset = BlogCategory.objects.all()
     serializer_class = BlogCategorySerializer
-    permission_classes = [IsAdminUser]
     lookup_field = 'slug'
 
 
 class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
     queryset = BlogCategory.objects.all()
     serializer_class = BlogCategorySerializer
-    permission_classes = [IsAdminUser]
     lookup_field = 'slug'
 
 
@@ -156,27 +247,23 @@ class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
 class BlogTagListAPIView(generics.ListAPIView):
     queryset = BlogTag.objects.all()
     serializer_class = BlogTagSerializer
-    permission_classes = [AllowAny]
 
 
 class BlogTagCreateAPIView(generics.CreateAPIView):
     queryset = BlogTag.objects.all()
     serializer_class = BlogTagSerializer
-    permission_classes = [IsAdminUser]
 
 
 class BlogTagUpdateAPIView(generics.UpdateAPIView):
     queryset = BlogTag.objects.all()
     serializer_class = BlogTagSerializer
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
 
 class BlogTagDeleteAPIView(generics.DestroyAPIView):
     queryset = BlogTag.objects.all()
     serializer_class = BlogTagSerializer
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
 
 # blog-post
@@ -202,7 +289,6 @@ class BlogPostCreateAPIView(generics.CreateAPIView):
     queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').filter(
         status='published').all()
     serializer_class = CreateBlogPostSerializer
-    permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
         created_serializer = self.serializer_class(data=request.data, context={'user': self.request.user})
@@ -215,7 +301,6 @@ class BlogPostCreateAPIView(generics.CreateAPIView):
 class BlogPostUpdateAPIView(generics.UpdateAPIView):
     queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').all()
     serializer_class = UpdateBlogPostSerializer
-    permission_classes = [IsAdminUser]
     lookup_field = 'slug'
 
     # http_method_names = ['patch']
@@ -232,7 +317,6 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
 class BlogPostDeleteAPIView(generics.DestroyAPIView):
     queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').all()
     serializer_class = BlogPostDetailSerializer
-    permission_classes = [IsAdminUser]
     lookup_field = 'slug'
 
 
@@ -240,7 +324,6 @@ class BlogPostDeleteAPIView(generics.DestroyAPIView):
 
 class BlogPostListByCategoryAPIView(generics.ListAPIView):
     serializer_class = BlogPostListSerializer
-    permission_classes = [AllowAny]
 
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ['title']
@@ -258,7 +341,6 @@ class BlogPostListByCategoryAPIView(generics.ListAPIView):
 
 class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
     serializer_class = BlogPostDetailSerializer
-    permission_classes = [AllowAny]
     lookup_field = 'slug'
 
     def get_queryset(self):
@@ -281,7 +363,6 @@ class AboutUsRetrieveAPIView(generics.RetrieveAPIView):
 
 class AboutUsCreateAPIView(generics.CreateAPIView):
     serializer_class = AboutUsSerializer
-    permission_classes = [IsAdminUser]
 
     queryset = AboutUs.objects.all()
 
@@ -296,7 +377,6 @@ class AboutUsCreateAPIView(generics.CreateAPIView):
 
 class AboutUsDeleteAPIView(generics.DestroyAPIView):
     serializer_class = AboutUsSerializer
-    permission_classes = [IsAdminUser]
 
     def get_object(self):
         obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
@@ -305,7 +385,6 @@ class AboutUsDeleteAPIView(generics.DestroyAPIView):
 
 class AboutUsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = AboutUsSerializer
-    permission_classes = [IsAdminUser]
     http_method_names = ['put']
 
     def get_object(self):
@@ -323,7 +402,6 @@ class ContactUsRetrieveAPIView(generics.RetrieveAPIView):
 
 class ContactUsCreateAPIView(generics.CreateAPIView):
     serializer_class = ContactUsSerializer
-    permission_classes = [IsAdminUser]
     queryset = ContactUs.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -337,7 +415,6 @@ class ContactUsCreateAPIView(generics.CreateAPIView):
 
 class ContactUsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = ContactUsSerializer
-    permission_classes = [IsAdminUser]
     http_method_names = ['put']
 
     def get_object(self):
@@ -347,7 +424,6 @@ class ContactUsUpdateAPIView(generics.UpdateAPIView):
 
 class ContactUsDeleteAPIView(generics.DestroyAPIView):
     serializer_class = ContactUsSerializer
-    permission_classes = [IsAdminUser]
 
     def get_object(self):
         obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
@@ -355,7 +431,6 @@ class ContactUsDeleteAPIView(generics.DestroyAPIView):
 
 
 class ContactSubmissionCreateAPIView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
     serializer_class = ContactSubmissionSerializer
     queryset = ContactSubmission.objects.select_related('user').all()
 
@@ -382,21 +457,18 @@ class CourseRetrieveAPIView(generics.RetrieveAPIView):
 class CourseCreateAPIView(generics.CreateAPIView):
     serializer_class = CourseListCreateSerializer
     queryset = Course.objects.all()
-    permission_classes = [IsAdminUser]
 
 
 class CourseUpdateAPIView(generics.UpdateAPIView):
     serializer_class = CourseUpdateSerializer
     queryset = Course.objects.all()
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
 
 class CourseDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CourseListCreateSerializer
     queryset = Course.objects.all()
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
 
 # Video
@@ -422,7 +494,6 @@ class VideoRetrieveAPIView(generics.RetrieveAPIView):
 
 class VideoCreateAPIView(generics.CreateAPIView):
     serializer_class = VideoCreateSerializer
-    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         course_slug = self.kwargs.get('course_slug')
@@ -436,7 +507,6 @@ class VideoCreateAPIView(generics.CreateAPIView):
 class VideoUpdateAPIView(generics.UpdateAPIView):
     serializer_class = VideoUpdateSerializer
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         course_slug = self.kwargs.get('course_slug')
@@ -446,58 +516,40 @@ class VideoUpdateAPIView(generics.UpdateAPIView):
 class VideoDeleteAPIView(generics.DestroyAPIView):
     serializer_class = VideoSerializer
     lookup_field = 'slug'
-    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         course_slug = self.kwargs.get('course_slug')
         return Video.objects.select_related('course').filter(course__slug=course_slug).all()
 
 
-# Course Order
+# Banners
 
-class CourseOrderListAPIView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+class HomeBannerListView(generics.ListAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return CourseOrderForAdminSerializer
-        return CourseOrderSerializer
+class HomeBannerCreateView(generics.CreateAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.full_clean()
 
-
-class CourseOrderRetrieveAPIView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return CourseOrderForAdminSerializer
-        return CourseOrderSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+class HomeBannerDetailView(generics.RetrieveAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
 
-class CourseOrderCreateAPIView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = CourseOrderCreateSerializer
+class HomeBannerUpdateView(generics.UpdateAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        instance.full_clean()
 
+class HomeBannerDeleteView(generics.DestroyAPIView):
+    serializer_class = HomeBannerSerializer
+    queryset = HomeBanner.objects.all().order_by('order')
 
-class CourseOrderUpdateAPIView(generics.UpdateAPIView):
-    permission_classes = [IsAdminUser]
-    serializer_class = CourseOrderUpdateSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()
-
-
-class CourseOrderDeleteAPIView(generics.DestroyAPIView):
-    permission_classes = [IsAdminUser]
-    serializer_class = CourseOrderSerializer
-
-    def get_queryset(self):
-        return CourseOrder.objects.select_related('course', 'user').filter(user=self.request.user).all()

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from customers.models import Customer
@@ -42,10 +43,11 @@ class Product(models.Model):
     main_img = models.ImageField(null=True, blank=True, upload_to='main_img/products/')
     description = models.TextField(max_length=5000, null=True, blank=True)
     color = models.ForeignKey(ProductColor, on_delete=models.SET_NULL, null=True)
-    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
     company = models.ForeignKey(ProductCompany, on_delete=models.SET_NULL, null=True)
     price = models.DecimalField(decimal_places=5, max_digits=20)
     stock = models.IntegerField(default=0)
+    units_sold = models.PositiveIntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -56,7 +58,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     img = models.ImageField(null=True, blank=True, upload_to='images/products/')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, related_name='images')
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -91,9 +93,21 @@ class Game(models.Model):
     title = models.CharField(max_length=100, unique=True, null=True)
     main_img = models.ImageField(null=True, blank=True, upload_to="main_img/game/")
     description = models.TextField(max_length=5000, null=True, blank=True)
+    is_trend = models.BooleanField(default=False)
+    units_sold = models.PositiveIntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        if self.is_trend:
+            games_count = Game.objects.filter(is_trend=True).exclude(pk = self.pk).count()
+            if games_count >= 4:
+                raise ValidationError("حداکثر ۴ بازی می‌توانند ترند باشند")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -101,7 +115,7 @@ class Game(models.Model):
 
 class GameImage(models.Model):
     img = models.ImageField(null=True, blank=True, upload_to='images/games/')
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True, related_name='game_images')
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
