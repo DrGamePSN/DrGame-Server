@@ -19,11 +19,14 @@ urlpatterns = [
     path('orders/repair/', views.CustomerRepairOrderListAPIView.as_view(), name='repair-orders'),
     path('orders/repair/<int:pk>/', views.CustomerRepairOrderRetrieveAPIView.as_view(), name='repair-order-detail'),
 
+    # course order list & retrieve urls
+    path('orders/course/', views.CustomerCourseOrderListAPIView.as_view(), name='course-orders'),
+    path('orders/course/<int:pk>/', views.CustomerCourseOrderRetrieveAPIView.as_view(), name='course-order-detail'),
+
     # transactions
     path('transactions/', views.CustomerTransactionListAPIView.as_view(), name='customer-transactions'),
-    path('transactions/<int:pk>/', views.CustomerTransactionRetrieveAPIView.as_view(), name='customer-transactions-detail'),
-
-
+    path('transactions/<int:pk>/', views.CustomerTransactionRetrieveAPIView.as_view(),
+         name='customer-transactions-detail'),
 
     #
     # # Transactions

@@ -46,7 +46,7 @@ class GameOrderType(models.Model):
 
 class GameOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
-    order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
+    order_type = models.ForeignKey(GameOrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
     product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
     games_count = models.IntegerField(default=0, null=True, blank=True)
@@ -84,7 +84,7 @@ class RepairOrder(models.Model):
 
 
 class CourseOrder(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='orders')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_deleted = models.BooleanField(default=False)

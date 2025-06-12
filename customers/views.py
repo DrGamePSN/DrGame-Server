@@ -11,10 +11,10 @@ from .serializers import (
     OrderSerializer,
     GameOrderSerializer,
     RepairOrderSerializer,
-    TransactionSerializer, BusinessCustomerProfileSerializer, CustomerProfileCreateSerializer
+    TransactionSerializer, BusinessCustomerProfileSerializer, CustomerProfileCreateSerializer, CourseOrderSerializer
 )
 
-from payments.models import Order, GameOrder, RepairOrder, Transaction
+from payments.models import Order, GameOrder, RepairOrder, Transaction, CourseOrder
 from django.db.models import Q
 
 
@@ -67,7 +67,7 @@ class CustomerOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
 
 
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -76,7 +76,7 @@ class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
 
 
 class CustomerGameOrderListAPIView(generics.ListAPIView):
@@ -85,7 +85,7 @@ class CustomerGameOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
 
 
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -94,7 +94,7 @@ class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
 
 
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
@@ -103,7 +103,7 @@ class CustomerRepairOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
 
 
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -112,7 +112,27 @@ class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+
+
+class CustomerCourseOrderListAPIView(generics.ListAPIView):
+    serializer_class = CourseOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        customer = get_object_or_404(Customer, user=self.request.user)
+        return CourseOrder.objects.select_related('course', 'customer').filter(customer=customer,
+                                                                               is_deleted=False).all()
+
+
+class CustomerCourseOrderRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = CourseOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        customer = get_object_or_404(Customer, user=self.request.user)
+        return CourseOrder.objects.select_related('course', 'customer').filter(customer=customer,
+                                                                               is_deleted=False).all()
 
 
 class CustomerTransactionListAPIView(generics.ListAPIView):
