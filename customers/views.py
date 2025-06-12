@@ -67,7 +67,7 @@ class CustomerOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -76,7 +76,7 @@ class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerGameOrderListAPIView(generics.ListAPIView):
@@ -85,7 +85,7 @@ class CustomerGameOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -94,7 +94,7 @@ class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
@@ -103,7 +103,7 @@ class CustomerRepairOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -112,7 +112,7 @@ class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
 
 
 class CustomerCourseOrderListAPIView(generics.ListAPIView):

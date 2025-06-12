@@ -92,7 +92,7 @@ class CourseOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'Order #{self.id} - {self.user} - {self.course}'
+        return f'Order #{self.id} - {self.customer} - {self.course}'
 
 
 class TransactionType(models.Model):
