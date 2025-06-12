@@ -262,7 +262,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
 class ContactSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactSubmission
-        fields = ['name', 'user', 'email', 'subject', 'message', ]
+        fields = ['name', 'user','phone', 'email', 'subject', 'message', ]
         read_only_fields = ['user']
 
     def create(self, validated_data):

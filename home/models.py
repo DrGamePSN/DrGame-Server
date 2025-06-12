@@ -169,7 +169,8 @@ class ContactUs(models.Model):
 class ContactSubmission(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    email = models.EmailField(validators=[EmailValidator()])
+    email = models.EmailField(blank=True,null = True,validators=[EmailValidator()])
+    phone = models.CharField(max_length=11)
     subject = models.CharField(max_length=200)
     message = models.TextField()
 

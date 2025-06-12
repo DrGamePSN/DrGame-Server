@@ -51,7 +51,7 @@ class ContactUsAdmin(admin.ModelAdmin):
 
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'email', 'subject', 'message_preview', 'user', 'is_deleted']
+    list_display = ['id', 'name', 'email','phone', 'subject', 'message_preview', 'user', 'is_deleted']
 
     def message_preview(self, obj):
         return obj.message[:100] + '...' if len(obj.subject) > 10 else obj.message
