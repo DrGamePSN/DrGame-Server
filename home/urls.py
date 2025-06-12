@@ -71,7 +71,7 @@ urlpatterns = [
 
     # course
     path('courses/', views.CourseListAPIView.as_view(), name='course-list'),
-    path('courses/orders/', views.CourseOrderListAPIView.as_view(), name='course-order-list'),
+    # path('courses/orders/', views.CourseOrderListAPIView.as_view(), name='course-order-list'),
     path('courses/add/', views.CourseCreateAPIView.as_view(), name='course-create'),
 
     path('courses/<str:slug>/', views.CourseRetrieveAPIView.as_view(), name='course-detail'),

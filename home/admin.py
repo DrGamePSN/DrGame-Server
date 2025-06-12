@@ -83,4 +83,4 @@ class HomeBannerAdmin(admin.ModelAdmin):
 
 @admin.register(CourseOrder)
 class CourseOrderAdmin(admin.ModelAdmin):
-    list_display = ['user', 'course', 'payment_status', 'price', 'created_at', 'updated_at']
+    list_display = ['user', 'course', 'amount', 'created_at', 'updated_at']
