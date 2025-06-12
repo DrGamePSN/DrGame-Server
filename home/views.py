@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -430,6 +431,7 @@ class ContactUsDeleteAPIView(generics.DestroyAPIView):
 
 
 class ContactSubmissionCreateAPIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = ContactSubmissionSerializer
     queryset = ContactSubmission.objects.select_related('user').all()
 
@@ -527,6 +529,7 @@ class HomeBannerListView(generics.ListAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
 
+
 class HomeBannerCreateView(generics.CreateAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
@@ -534,6 +537,7 @@ class HomeBannerCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.full_clean()
+
 
 class HomeBannerDetailView(generics.RetrieveAPIView):
     serializer_class = HomeBannerSerializer
@@ -548,7 +552,7 @@ class HomeBannerUpdateView(generics.UpdateAPIView):
         instance = serializer.save()
         instance.full_clean()
 
+
 class HomeBannerDeleteView(generics.DestroyAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
-

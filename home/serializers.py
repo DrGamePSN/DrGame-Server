@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from slugify import slugify
 
+from payments.models import CourseOrder
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Video, \
     Course, HomeBanner
 from storage.models import Product, ProductColor
