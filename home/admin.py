@@ -1,6 +1,8 @@
 from django.contrib import admin
+
+from payments.models import CourseOrder
 from .models import Cart, CartItem, BlogCategory, BlogPost, ContactUs, AboutUs, ContactSubmission, BlogTag, Course, \
-    Video, CourseOrder, HomeBanner
+    Video, HomeBanner
 
 
 @admin.register(Cart)
