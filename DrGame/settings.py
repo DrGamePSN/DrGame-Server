@@ -196,7 +196,7 @@ CORS_ALLOW_HEADERS = [
     'origin',
     'user-agent',
     'x-csrftoken',
-    'x-api-key',  # هدر سفارشی شما
+    'x-api-key',
 ]
 CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT = False
