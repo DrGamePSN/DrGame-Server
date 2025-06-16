@@ -117,10 +117,13 @@ class Transaction(models.Model):
         ('Cancelled', 'کنسل شده'),
         ('Failed', 'ناموفق')
     ))
-    game_order = models.ForeignKey(GameOrder, on_delete=models.SET_NULL, null=True, related_name='game_order')
-    repair_order = models.ForeignKey(RepairOrder, on_delete=models.SET_NULL, null=True, related_name='repair_order')
-    course_order = models.ForeignKey(CourseOrder, on_delete=models.SET_NULL, null=True, related_name='course_order')
-    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, related_name='order')
+    game_order = models.ForeignKey(GameOrder, on_delete=models.SET_NULL, blank=True, null=True,
+                                   related_name='game_order')
+    repair_order = models.ForeignKey(RepairOrder, on_delete=models.SET_NULL, blank=True, null=True,
+                                     related_name='repair_order')
+    course_order = models.ForeignKey(CourseOrder, on_delete=models.SET_NULL, blank=True, null=True,
+                                     related_name='course_order')
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='order')
     description = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
