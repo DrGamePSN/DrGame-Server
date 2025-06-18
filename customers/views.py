@@ -29,6 +29,7 @@ class CustomerProfileCreateAPIView(generics.CreateAPIView):
 
 class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_object(self):
         try:
@@ -49,6 +50,7 @@ class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
     serializer_class = BusinessCustomerUpgradeSerializer
     queryset = BusinessCustomer.objects.select_related('user').all()
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         customer = get_object_or_404(Customer, user=request.user)
@@ -67,6 +69,7 @@ class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
 class CustomerOrderListAPIView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -77,6 +80,7 @@ class CustomerOrderListAPIView(generics.ListAPIView):
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -87,6 +91,7 @@ class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
 class CustomerGameOrderListAPIView(generics.ListAPIView):
     serializer_class = GameOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -97,6 +102,7 @@ class CustomerGameOrderListAPIView(generics.ListAPIView):
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -107,6 +113,7 @@ class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
     serializer_class = RepairOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -117,6 +124,7 @@ class CustomerRepairOrderListAPIView(generics.ListAPIView):
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = RepairOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -127,6 +135,7 @@ class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
 class CustomerCourseOrderListAPIView(generics.ListAPIView):
     serializer_class = CourseOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -137,6 +146,7 @@ class CustomerCourseOrderListAPIView(generics.ListAPIView):
 class CustomerCourseOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = CourseOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -147,6 +157,7 @@ class CustomerCourseOrderRetrieveAPIView(generics.RetrieveAPIView):
 class CustomerTransactionListAPIView(generics.ListAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
@@ -161,6 +172,7 @@ class CustomerTransactionListAPIView(generics.ListAPIView):
 class CustomerTransactionRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         return Transaction.objects.filter(

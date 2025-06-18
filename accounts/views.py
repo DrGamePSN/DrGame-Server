@@ -5,6 +5,7 @@ import requests
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
@@ -57,7 +58,7 @@ class CreateAPIKeyView(APIView):
 
 class RequestOTPView(APIView):
     throttle_classes = [AnonRateThrottle, PhoneRateThrottle]
-
+    permission_classes = [AllowAny]
     def post(self, request):
         # چک کردن API Key
         api_key = request.headers.get('X-API-Key')
@@ -114,6 +115,7 @@ class RequestOTPView(APIView):
 
 class VerifyOTPView(APIView):
     throttle_classes = [AnonRateThrottle]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         api_key = request.headers.get('X-API-Key')
@@ -260,6 +262,7 @@ class LogoutView(APIView):
 
 class UserStatusView(APIView):
     authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         if not request.user.is_authenticated:
