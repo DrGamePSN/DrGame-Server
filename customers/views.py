@@ -4,6 +4,8 @@ from rest_framework import generics, status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from accounts.auth import CustomJWTAuthentication
 from .models import Customer, BusinessCustomer
 from .serializers import (
     CustomerProfileSerializer,
@@ -22,6 +24,7 @@ class CustomerProfileCreateAPIView(generics.CreateAPIView):
     serializer_class = CustomerProfileCreateSerializer
     queryset = Customer.objects.select_related('user').filter(is_deleted=False).all()
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
 
 class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
@@ -67,7 +70,8 @@ class CustomerOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                        is_deleted=False)
 
 
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -76,7 +80,8 @@ class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                        is_deleted=False)
 
 
 class CustomerGameOrderListAPIView(generics.ListAPIView):
@@ -85,7 +90,8 @@ class CustomerGameOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                            is_deleted=False)
 
 
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -94,7 +100,8 @@ class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                            is_deleted=False)
 
 
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
@@ -103,7 +110,8 @@ class CustomerRepairOrderListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                              is_deleted=False)
 
 
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
@@ -112,7 +120,8 @@ class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                              is_deleted=False)
 
 
 class CustomerCourseOrderListAPIView(generics.ListAPIView):
