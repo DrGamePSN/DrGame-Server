@@ -1,11 +1,14 @@
 import secrets
 import uuid
+from datetime import timedelta
 
+import requests
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
+from DrGame import settings
 from accounts.manager import CustomUserManager
 
 
@@ -46,6 +49,35 @@ class OTP(models.Model):
 
     def is_valid(self):
         return timezone.now() <= self.expires_at
+
+    def send_otp(self, phone, otp_code):
+        url = settings.FARAZ_URL
+        api_key = settings.FARAZ_API_KEY
+        phone = '+98' + phone[1:]  # فرمت شماره تلفن
+        headers = {
+            "apikey": api_key,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "code": "0li89sh8n64thu4",
+            "sender": "+983000505",
+            "recipient": phone,
+            "variable": {
+                "code": otp_code
+            }
+        }
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(f"Response Body: {response.text}")
+            try:
+                print(f"Response JSON: {response.json()}")
+            except ValueError:
+                print("Response is not valid JSON")
+        except requests.exceptions.RequestException as e:
+            print(f"Request Error: {str(e)}")
+        print(f"OTP for {phone}: {otp_code}")
 
 
 class APIKey(models.Model):

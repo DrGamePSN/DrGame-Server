@@ -230,6 +230,10 @@ AWS_STORAGE_BUCKET_NAME = LIARA_BUCKET_NAME
 AWS_S3_ENDPOINT_URL = LIARA_ENDPOINT
 AWS_S3_REGION_NAME = 'us-east-1'
 
+# FARAZ SMS Configuration
+FARAZ_URL = os.getenv("FARAZ_URL")
+FARAZ_API_KEY = os.getenv("FARAZ_API_KEY")
+
 # Django-storages configuration
 STORAGES = {
     "default": {
@@ -240,5 +244,4 @@ STORAGES = {
     },
 }
 INTERNAL_IPS = [
-
     "127.0.0.1", ]

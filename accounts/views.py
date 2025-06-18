@@ -59,6 +59,7 @@ class CreateAPIKeyView(APIView):
 class RequestOTPView(APIView):
     throttle_classes = [AnonRateThrottle, PhoneRateThrottle]
     permission_classes = [AllowAny]
+
     def post(self, request):
         # چک کردن API Key
         api_key = request.headers.get('X-API-Key')
@@ -74,39 +75,19 @@ class RequestOTPView(APIView):
                 {"error": "شماره موبایل الزامی است"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        user, created = CustomUser.objects.get_or_create(phone=phone, defaults={'is_active': True})
+        user = CustomUser.objects.get(phone=phone)
+        if not user:
+            user = CustomUser.objects.create(phone=phone, is_active=False)
+        OTP.objects.filter(user=user).delete()
         otp_code = str(secrets.randbelow(100000000)).zfill(8)
         expires_at = timezone.now() + timedelta(minutes=2)
-        OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
-        faraz_url = "https://api2.ippanel.com/api/v1/sms/pattern/normal/send"
-        faraz_api_key = "OWYwNmNlODYtNTc2YS00OTEzLWIzZmMtYWFiNzQxOGIyN2Y1NzMzZmNiOGI2ODMyZmY1Y2JhZWNjNzVlNWNhOGMyOWU="
-        faraz_phone = '+98' + phone[1:]
-        headers = {
-            "apikey": faraz_api_key,
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "code": "0li89sh8n64thu4",
-            "sender": "+983000505",
-            "recipient": faraz_phone,
-            "variable": {
-                "code": otp_code
-            }
-        }
-        try:
-            response = requests.post(faraz_url, json=payload, headers=headers, timeout=10)
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {response.headers}")
-            print(f"Response Body: {response.text}")
-            try:
-                print(f"Response JSON: {response.json()}")
-            except ValueError:
-                print("Response is not valid JSON")
-
-        except requests.exceptions.RequestException as e:
-            print(f"Request Error: {str(e)}")
-        print(f"OTP for {phone}: {otp_code}")
+        otp = OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
+        success, message = otp.send_otp(phone=phone, otp_code=otp_code)
+        if not success:
+            return Response(
+                {"error": f"خطا در ارسال OTP: {message}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(
             {"message": "لطفاً کد OTP را وارد کنید"},
             status=status.HTTP_200_OK
@@ -148,16 +129,18 @@ class VerifyOTPView(APIView):
                     {"error": "Invalid or expired OTP"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            otp.delete()
+            if not user.is_active:
+                user.is_active = True
+                user.save()
         except OTP.DoesNotExist:
             return Response(
                 {"error": "No OTP found"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
-
         response = Response(
             {"message": "Login successful"},
             status=status.HTTP_200_OK
@@ -174,11 +157,10 @@ class VerifyOTPView(APIView):
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
             max_age=432000
         )
-
         return response
 
 
