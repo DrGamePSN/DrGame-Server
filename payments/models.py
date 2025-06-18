@@ -1,7 +1,7 @@
 from django.db import models
 
 from home.models import Course
-from storage.models import CustomerConsole
+from storage.models import CustomerConsole, Product
 from accounts.models import CustomUser
 from customers.models import Customer
 from django.conf import settings
@@ -24,7 +24,7 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
     order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
-    product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,7 +72,7 @@ class RepairOrderType(models.Model):
 
 class RepairOrder(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
-    order_type = models.ForeignKey(OrderType, on_delete=models.SET_NULL, null=True)
+    order_type = models.ForeignKey(RepairOrderType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
     product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
     is_deleted = models.BooleanField(default=False)
