@@ -1,5 +1,7 @@
 # customers/serializers.py
 from rest_framework import serializers
+
+from storage.serializers import ProductSerializer
 from .models import Customer, BusinessCustomer
 from payments.models import Order, GameOrder, RepairOrder, Transaction, CourseOrder
 
@@ -103,11 +105,11 @@ class BusinessCustomerUpgradeSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     order_type = serializers.StringRelatedField()
-    product = serializers.StringRelatedField()
+    product = ProductSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'order_type', 'amount', 'product', 'created_at']
+        fields = ['id', 'order_type','description', 'amount', 'product', 'created_at']
         read_only_fields = fields
 
 

@@ -5,6 +5,7 @@ __pycache__/
 *.swp
 .venv/
 venv/
+.sqlight3
 .idea/
 *.sqlite3
 *.sqlite
