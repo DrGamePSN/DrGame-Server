@@ -71,14 +71,21 @@ class OTP(models.Model):
             print(f"Status Code: {response.status_code}")
             print(f"Response Headers: {response.headers}")
             print(f"Response Body: {response.text}")
+
             try:
-                print(f"Response JSON: {response.json()}")
+                response_json = response.json()
+                print(f"Response JSON: {response_json}")
+                if response_json.get('status') == 'OK' and response_json.get('code') == 200:
+                    print(f"OTP for {phone}: {otp_code}")
+                    return True, "پیامک با موفقیت ارسال شد"
+                else:
+                    return False, f"خطا در ارسال پیامک: {response_json.get('error_message', 'نامشخص')}"
             except ValueError:
                 print("Response is not valid JSON")
+                return False, "خطا در ارسال پیامک: پاسخ API معتبر نیست"
         except requests.exceptions.RequestException as e:
             print(f"Request Error: {str(e)}")
-        print(f"OTP for {phone}: {otp_code}")
-
+            return False, f"خطا در ارتباط با سرویس پیامک: {str(e)}"
 
 class APIKey(models.Model):
     key = models.CharField(max_length=70, unique=True)

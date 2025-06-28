@@ -75,7 +75,7 @@ class RequestOTPView(APIView):
                 {"error": "شماره موبایل الزامی است"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        user = CustomUser.objects.get(phone=phone)
+        user = CustomUser.objects.filter(phone=phone).first()
         if not user:
             user = CustomUser.objects.create(phone=phone, is_active=False)
         OTP.objects.filter(user=user).delete()
