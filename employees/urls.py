@@ -1,7 +1,6 @@
 from django.urls import path
-
-from employees.views import EmployeeListView
+from employees import views
 
 urlpatterns = [
-    path('manager-panel/employee-list/', EmployeeListView.as_view(), name='employee-list'),
+    path('order-list/', views.OrderList.as_view(), name='order-list'),
 ]

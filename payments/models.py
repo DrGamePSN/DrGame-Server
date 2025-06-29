@@ -1,7 +1,7 @@
 from django.db import models
 
 from home.models import Course
-from storage.models import CustomerConsole, Product
+from storage.models import CustomerConsole, Product, Game
 from accounts.models import CustomUser
 from customers.models import Customer
 from django.conf import settings
@@ -52,6 +52,7 @@ class GameOrder(models.Model):
     product = models.ForeignKey(CustomerConsole, on_delete=models.SET_NULL, null=True)
     games_count = models.IntegerField(default=0, null=True, blank=True)
     selected_games_count = models.IntegerField(default=0, null=True, blank=True)
+    games = models.ManyToManyField(Game, related_name='orders', blank=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
