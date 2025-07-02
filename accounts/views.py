@@ -186,6 +186,7 @@ class VerifyOTPView(APIView):
 
 class RefreshTokenView(APIView):
     throttle_classes = [AnonRateThrottle]
+    permission_classes = [AllowAny]
 
     @extend_schema(
         request=RefreshTokenSerializer,
