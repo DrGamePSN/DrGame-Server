@@ -20,7 +20,7 @@ class EmployeeRole(models.Model):
 
 
 class Employee(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee')
     role = models.ForeignKey(EmployeeRole, on_delete=models.SET_NULL, null=True)
     profile_picture = models.ImageField(null=True, upload_to='profile_pictures/employees/')
     first_name = models.CharField(max_length=100, null=True)

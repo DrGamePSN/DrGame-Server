@@ -22,12 +22,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('mangement-panel/', include('management.urls')),
-    path('accounts/', include('accounts.urls')),
-    path('', include('home.urls')),
-    path('customers/',include('customers.urls')),
-    path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-] + debug_toolbar_urls()
+                  path('admin/', admin.site.urls),
+                  path('mangement-panel/', include('management.urls')),
+                  path('accounts/', include('accounts.urls')),
+                  path('', include('home.urls')),
+                  path('customers/', include('customers.urls')),
+                  path('employees/', include('employees.urls')),
+                  path('schema/', SpectacularAPIView.as_view(), name='schema'),
+                  path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+              ] + debug_toolbar_urls()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
