@@ -32,15 +32,25 @@ class IsSuperuserOrHasRole(BasePermission):
                 hasattr(request.user, 'main_manager'))
 
 
-def restrict_access(user_boolean_field):
+def restrict_access(*user_boolean_fields):
     def decorator(view_class):
         original_initial = view_class.initial
 
         @wraps(view_class)
         def new_initial(self, request, *args, **kwargs):
+            user = request.user
             employee = request.user.employee
-            if not getattr(employee, user_boolean_field, False):
-                raise PermissionDenied(f"Access denied: {user_boolean_field} is False or not present.")
+            if not user or not user.is_authenticated:
+                raise PermissionDenied("Access denied: user not authenticated.")
+
+            for field in user_boolean_fields:
+                value = getattr(employee, field, None)
+                print(f"{field}: {value}")
+
+            for field in user_boolean_fields:
+                if not getattr(employee, field, False):
+                    raise PermissionDenied(f"Access denied: {field} is not True.")
+
             return original_initial(self, request, *args, **kwargs)
 
         view_class.initial = new_initial
