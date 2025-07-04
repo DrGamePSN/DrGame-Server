@@ -22,10 +22,8 @@ urlpatterns = [
     path('order/detail/<int:pk>', views.OrderDetailAPIView.as_view(), name='order-detail'),
     path('transaction/list/', views.TransactionListAPIView.as_view(), name='transaction-list'),
     path('transaction/detail/<int:pk>', views.TransactionDetailAPIView.as_view(), name='transaction-detail'),
-
     # create urls
     path('employee/add/', views.EmployeeAddAPIView.as_view(), name='employee-add'),
-    path('employee-role/add/', views.EmployeeRoleAddAPIView.as_view(), name='employee-role-add'),
     path('repairman/add/', views.RepairmanAddAPIView.as_view(), name='repairman-add'),
     path('customer/add/', views.CustomerAddAPIView.as_view(), name='customer_add'),
     path('business-customer/add/', views.BusinessCustomerAddAPIView.as_view(), name='business-customer_add'),

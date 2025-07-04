@@ -1,27 +1,11 @@
 from django.db import models
-
 from accounts.models import CustomUser
 
 
 # Create your models here.
-class EmployeeRole(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField(max_length=5000)
-    type = models.CharField(max_length=100, choices=(
-        ('operational', 'عملیاتی'),
-        ('in organ', 'درون سازمانی')
-    ), null=True, blank=True)
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.title
-
 
 class Employee(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee')
-    role = models.ForeignKey(EmployeeRole, on_delete=models.SET_NULL, null=True)
     profile_picture = models.ImageField(null=True, upload_to='profile_pictures/employees/')
     first_name = models.CharField(max_length=100, null=True)
     last_name = models.CharField(max_length=100, null=True)
@@ -32,6 +16,13 @@ class Employee(models.Model):
         ('Commission', 'پورسانت'),
         ('Fixed salary', 'حقوق ثابت')
     ), null=True)
+    is_access_to_orders = models.BooleanField(default=False)
+    is_access_to_accounts = models.BooleanField(default=False)
+    is_access_to_products = models.BooleanField(default=False)
+    is_access_to_customers = models.BooleanField(default=False)
+    is_access_to_transactions = models.BooleanField(default=False)
+    is_access_to_calls = models.BooleanField(default=False)
+    is_access_to_chat = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

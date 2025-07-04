@@ -1,11 +1,11 @@
 # Create your views here.
 from rest_framework import generics
-from management.serializers import ManagementEmployeeListSerializer, ManagementSonyAccountSerializer, ManagementProductCategorySerializer, \
+from management.serializers import ManagementSonyAccountSerializer, ManagementProductCategorySerializer, \
     ManagementProductSerializer, ManagementEmployeeSerializer, ManagementRepairmanSerializer, ManagementCustomerSerializer, ManagementBusinessCustomerSerializer, \
-    ManagementEmployeeCreateSerializer, ManagementEmployeeRoleAddSerializer, ManagementProductAddSerializer, ManagementProductColorSerializer, \
+    ManagementEmployeeCreateSerializer, ManagementProductAddSerializer, ManagementProductColorSerializer, \
     ManagementProductCompanySerializer, ManagementOrderSerializer
 from customers.models import Customer, BusinessCustomer
-from employees.models import Employee, Repairman, EmployeeRole
+from employees.models import Employee, Repairman
 from payments.models import Transaction, TransactionType, Order
 from storage.models import SonyAccount, ProductCategory, ProductColor, ProductCompany
 
@@ -13,13 +13,13 @@ from storage.models import SonyAccount, ProductCategory, ProductColor, ProductCo
 # get method api list
 class EmployeeListAPIView(generics.ListAPIView):
     queryset = Employee.objects.all()
-    serializer_class = ManagementEmployeeListSerializer
+    serializer_class = ManagementEmployeeSerializer
 
 
 class EmployeeDetailAPIView(generics.RetrieveAPIView):
     queryset = Employee.objects.all()
     serializer_class = ManagementEmployeeSerializer
-    lookup_field = 'employee_id'
+    lookup_field = 'pk'
 
 
 class RepairmanListAPIView(generics.ListAPIView):
@@ -110,11 +110,6 @@ class TransactionDetailAPIView(generics.RetrieveAPIView):
 
 
 # create method api list
-class EmployeeRoleAddAPIView(generics.CreateAPIView):
-    queryset = EmployeeRole.objects.all()
-    serializer_class = ManagementEmployeeRoleAddSerializer
-
-
 class EmployeeAddAPIView(generics.CreateAPIView):
     queryset = Employee.objects.all()
     serializer_class = ManagementEmployeeCreateSerializer

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from accounts.models import CustomUser
 from customers.models import Customer, BusinessCustomer
-from employees.models import Employee, Repairman, EmployeeRole
+from employees.models import Employee, Repairman
 from payments.models import GameOrder, RepairOrder, Order, Transaction, TransactionType
 from storage.models import SonyAccount, ProductCategory, Product, ProductCompany, ProductColor, ProductImage
 
@@ -49,21 +49,6 @@ class ManagementRepairmanSerializer(serializers.ModelSerializer):
             'last_name',
             'national_code',
             'balance',
-            'created_at',
-            'updated_at'
-        ]
-
-
-class ManagementEmployeeListSerializer(serializers.ModelSerializer):
-    employees = ManagementEmployeeSerializer(many=True, read_only=True, source='employee_set')  # کارمندان مرتبط با نقش
-
-    class Meta:
-        model = EmployeeRole
-        fields = [
-            'id',
-            'title',
-            'description',
-            'employees',
             'created_at',
             'updated_at'
         ]
@@ -251,12 +236,6 @@ class ManagementTransactionTypeSerializer(serializers.ModelSerializer):
 
 
 # create serializers
-class ManagementEmployeeRoleAddSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmployeeRole
-        fields = "__all__"
-
-
 class ManagementCustomUserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
