@@ -7,14 +7,14 @@ from storage.models import SonyAccount, ProductCategory, Product, ProductCompany
 
 
 # read serializers
-class CustomUserSerializer(serializers.ModelSerializer):
+class ManagementCustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
+class ManagementEmployeeSerializer(serializers.ModelSerializer):
+    user = ManagementCustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
     role = serializers.StringRelatedField()  # نمایش عنوان نقش
     income_type = serializers.CharField()  # نمایش نوع درآمد (مثل "پورسانت" یا "حقوق ثابت")
 
@@ -36,8 +36,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         ]
 
 
-class RepairmanSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
+class ManagementRepairmanSerializer(serializers.ModelSerializer):
+    user = ManagementCustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
 
     class Meta:
         model = Repairman
@@ -54,8 +54,8 @@ class RepairmanSerializer(serializers.ModelSerializer):
         ]
 
 
-class EmployeeListSerializer(serializers.ModelSerializer):
-    employees = EmployeeSerializer(many=True, read_only=True, source='employee_set')  # کارمندان مرتبط با نقش
+class ManagementEmployeeListSerializer(serializers.ModelSerializer):
+    employees = ManagementEmployeeSerializer(many=True, read_only=True, source='employee_set')  # کارمندان مرتبط با نقش
 
     class Meta:
         model = EmployeeRole
@@ -69,8 +69,8 @@ class EmployeeListSerializer(serializers.ModelSerializer):
         ]
 
 
-class CustomerSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
+class ManagementCustomerSerializer(serializers.ModelSerializer):
+    user = ManagementCustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
 
     class Meta:
         model = Customer
@@ -86,8 +86,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         ]
 
 
-class BusinessCustomerSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
+class ManagementBusinessCustomerSerializer(serializers.ModelSerializer):
+    user = ManagementCustomUserSerializer(read_only=True)  # اطلاعات کاربر مرتبط
 
     class Meta:
         model = BusinessCustomer
@@ -104,7 +104,7 @@ class BusinessCustomerSerializer(serializers.ModelSerializer):
         ]
 
 
-class SonyAccountSerializer(serializers.ModelSerializer):
+class ManagementSonyAccountSerializer(serializers.ModelSerializer):
     games = serializers.SlugRelatedField(
         many=True,
         read_only=True,
@@ -132,28 +132,28 @@ class SonyAccountSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class ManagementProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ['id', 'img', 'created_at', 'updated_at']
 
 
-class ProductColorSerializer(serializers.ModelSerializer):
+class ManagementProductColorSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColor
         fields = ['id', 'title']
 
 
-class ProductCompanySerializer(serializers.ModelSerializer):
+class ManagementProductCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductCompany
         fields = ['id', 'title']
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    color = ProductColorSerializer()  # نمایش کامل اطلاعات رنگ
-    company = ProductCompanySerializer()  # نمایش کامل اطلاعات برند
-    images = ProductImageSerializer(many=True, read_only=True, source='productimage_set')  # تصاویر محصول
+class ManagementProductSerializer(serializers.ModelSerializer):
+    color = ManagementProductColorSerializer()  # نمایش کامل اطلاعات رنگ
+    company = ManagementProductCompanySerializer()  # نمایش کامل اطلاعات برند
+    images = ManagementProductImageSerializer(many=True, read_only=True, source='productimage_set')  # تصاویر محصول
     category = serializers.StringRelatedField()  # نمایش عنوان دسته‌بندی
 
     class Meta:
@@ -174,8 +174,8 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductCategorySerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True, source='product_set')  # محصولات مرتبط با دسته‌بندی
+class ManagementProductCategorySerializer(serializers.ModelSerializer):
+    products = ManagementProductSerializer(many=True, read_only=True, source='product_set')  # محصولات مرتبط با دسته‌بندی
 
     class Meta:
         model = ProductCategory
@@ -190,31 +190,31 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         ]
 
 
-class GameOrderSerializer(serializers.ModelSerializer):
+class ManagementGameOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = GameOrder
         fields = ['id']  # فقط ID، در صورت نیاز می‌توانید فیلدهای بیشتری اضافه کنید
 
 
-class RepairOrderSerializer(serializers.ModelSerializer):
+class ManagementRepairOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepairOrder
         fields = ['id']  # فقط ID، در صورت نیاز می‌توانید فیلدهای بیشتری اضافه کنید
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class ManagementOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
 
 
-class TransactionSerializer(serializers.ModelSerializer):
-    payer = CustomUserSerializer(read_only=True)  # اطلاعات پرداخت‌کننده
-    receiver = CustomUserSerializer(read_only=True)  # اطلاعات دریافت‌کننده
+class ManagementTransactionSerializer(serializers.ModelSerializer):
+    payer = ManagementCustomUserSerializer(read_only=True)  # اطلاعات پرداخت‌کننده
+    receiver = ManagementCustomUserSerializer(read_only=True)  # اطلاعات دریافت‌کننده
     transaction_type = serializers.StringRelatedField()  # نمایش عنوان نوع تراکنش
-    game_order = GameOrderSerializer(read_only=True)  # اطلاعات سفارش بازی
-    repair_order = RepairOrderSerializer(read_only=True)  # اطلاعات سفارش تعمیر
-    order = OrderSerializer(read_only=True)  # اطلاعات سفارش عمومی
+    game_order = ManagementGameOrderSerializer(read_only=True)  # اطلاعات سفارش بازی
+    repair_order = ManagementRepairOrderSerializer(read_only=True)  # اطلاعات سفارش تعمیر
+    order = ManagementOrderSerializer(read_only=True)  # اطلاعات سفارش عمومی
     status = serializers.CharField()  # نمایش وضعیت به صورت رشته
 
     class Meta:
@@ -235,8 +235,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         ]
 
 
-class TransactionTypeSerializer(serializers.ModelSerializer):
-    transactions = TransactionSerializer(many=True, read_only=True, source='transaction_set')  # تراکنش‌های مرتبط
+class ManagementTransactionTypeSerializer(serializers.ModelSerializer):
+    transactions = ManagementTransactionSerializer(many=True, read_only=True, source='transaction_set')  # تراکنش‌های مرتبط
 
     class Meta:
         model = TransactionType
@@ -251,13 +251,13 @@ class TransactionTypeSerializer(serializers.ModelSerializer):
 
 
 # create serializers
-class EmployeeRoleAddSerializer(serializers.ModelSerializer):
+class ManagementEmployeeRoleAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeRole
         fields = "__all__"
 
 
-class CustomUserCreateSerializer(serializers.ModelSerializer):
+class ManagementCustomUserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['phone', 'is_active', 'is_staff', 'is_superuser']
@@ -276,7 +276,7 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
         return user
 
 
-class EmployeeCreateSerializer(serializers.ModelSerializer):
+class ManagementEmployeeCreateSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(write_only=True)  # فقط شماره تلفن دریافت می‌شود
 
     class Meta:
@@ -309,13 +309,13 @@ class EmployeeCreateSerializer(serializers.ModelSerializer):
         return employee
 
 
-class SonyAccountAddSerializer(serializers.ModelSerializer):
+class ManagementSonyAccountAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = SonyAccount
         fields = ('username', 'password')
 
 
-class ProductAddSerializer(serializers.ModelSerializer):
+class ManagementProductAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"

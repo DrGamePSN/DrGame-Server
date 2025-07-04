@@ -134,6 +134,7 @@ class CartDetailAPIView(generics.RetrieveAPIView):
 
 class CartCreateAPIView(generics.CreateAPIView):
     serializer_class = CartCreateSerializer
+    permission_classes = [AllowAny]
     queryset = Cart.objects.filter(is_deleted=False).all()
 
 

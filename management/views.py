@@ -1,9 +1,9 @@
 # Create your views here.
 from rest_framework import generics
-from management.serializers import EmployeeListSerializer, SonyAccountSerializer, ProductCategorySerializer, \
-    ProductSerializer, EmployeeSerializer, RepairmanSerializer, CustomerSerializer, BusinessCustomerSerializer, \
-    EmployeeCreateSerializer, EmployeeRoleAddSerializer, ProductAddSerializer, ProductColorSerializer, \
-    ProductCompanySerializer, OrderSerializer
+from management.serializers import ManagementEmployeeListSerializer, ManagementSonyAccountSerializer, ManagementProductCategorySerializer, \
+    ManagementProductSerializer, ManagementEmployeeSerializer, ManagementRepairmanSerializer, ManagementCustomerSerializer, ManagementBusinessCustomerSerializer, \
+    ManagementEmployeeCreateSerializer, ManagementEmployeeRoleAddSerializer, ManagementProductAddSerializer, ManagementProductColorSerializer, \
+    ManagementProductCompanySerializer, ManagementOrderSerializer
 from customers.models import Customer, BusinessCustomer
 from employees.models import Employee, Repairman, EmployeeRole
 from payments.models import Transaction, TransactionType, Order
@@ -13,111 +13,111 @@ from storage.models import SonyAccount, ProductCategory, ProductColor, ProductCo
 # get method api list
 class EmployeeListAPIView(generics.ListAPIView):
     queryset = Employee.objects.all()
-    serializer_class = EmployeeListSerializer
+    serializer_class = ManagementEmployeeListSerializer
 
 
 class EmployeeDetailAPIView(generics.RetrieveAPIView):
     queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
+    serializer_class = ManagementEmployeeSerializer
     lookup_field = 'employee_id'
 
 
 class RepairmanListAPIView(generics.ListAPIView):
     queryset = Repairman.objects.all()
-    serializer_class = RepairmanSerializer
+    serializer_class = ManagementRepairmanSerializer
 
 
 class RepairmanDetailAPIView(generics.RetrieveAPIView):
     queryset = Repairman.objects.all()
-    serializer_class = RepairmanSerializer
+    serializer_class = ManagementRepairmanSerializer
     lookup_field = 'pk'
 
 
 class CustomerListAPIView(generics.ListAPIView):
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = ManagementCustomerSerializer
 
 
 class CustomerDetailAPIView(generics.RetrieveAPIView):
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = ManagementCustomerSerializer
     lookup_field = 'pk'
 
 
 class BusinessCustomerListAPIView(generics.ListAPIView):
     queryset = BusinessCustomer.objects.all()
-    serializer_class = BusinessCustomerSerializer
+    serializer_class = ManagementBusinessCustomerSerializer
 
 
 class BusinessCustomerDetailAPIView(generics.RetrieveAPIView):
     queryset = BusinessCustomer.objects.all()
-    serializer_class = BusinessCustomerSerializer
+    serializer_class = ManagementBusinessCustomerSerializer
     lookup_field = 'pk'
 
 
 class SonyAccountListAPIView(generics.ListAPIView):
     queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
+    serializer_class = ManagementSonyAccountSerializer
 
 
 class SonyAccountDetailAPIView(generics.RetrieveAPIView):
     queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
+    serializer_class = ManagementSonyAccountSerializer
     lookup_field = 'pk'
 
 
 class ProductCategoryListAPIView(generics.ListAPIView):
     queryset = ProductCategory.objects.all()
-    serializer_class = ProductCategorySerializer
+    serializer_class = ManagementProductCategorySerializer
 
 
 class ProductColorListAPIView(generics.ListAPIView):
     queryset = ProductColor.objects.all()
-    serializer_class = ProductColorSerializer
+    serializer_class = ManagementProductColorSerializer
 
 
 class ProductCompanyListAPIView(generics.ListAPIView):
     queryset = ProductCompany.objects.all()
-    serializer_class = ProductCompanySerializer
+    serializer_class = ManagementProductCompanySerializer
 
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = ProductCategory.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = ManagementProductSerializer
     lookup_field = 'pk'
 
 
 class OrderListAPIView(generics.ListAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = ManagementOrderSerializer
 
 
 class OrderDetailAPIView(generics.RetrieveAPIView):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    serializer_class = ManagementOrderSerializer
     lookup_field = 'pk'
 
 
 class TransactionListAPIView(generics.ListAPIView):
     queryset = TransactionType.objects.all()
-    serializer_class = ProductCategorySerializer
+    serializer_class = ManagementProductCategorySerializer
 
 
 class TransactionDetailAPIView(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
-    serializer_class = ProductSerializer
+    serializer_class = ManagementProductSerializer
     lookup_field = 'pk'
 
 
 # create method api list
 class EmployeeRoleAddAPIView(generics.CreateAPIView):
     queryset = EmployeeRole.objects.all()
-    serializer_class = EmployeeRoleAddSerializer
+    serializer_class = ManagementEmployeeRoleAddSerializer
 
 
 class EmployeeAddAPIView(generics.CreateAPIView):
     queryset = Employee.objects.all()
-    serializer_class = EmployeeCreateSerializer
+    serializer_class = ManagementEmployeeCreateSerializer
 
 
 class RepairmanAddAPIView(generics.CreateAPIView):
@@ -137,9 +137,9 @@ class BusinessCustomerAddAPIView(generics.CreateAPIView):
 
 class SonyAccountAddAPIView(generics.CreateAPIView):
     queryset = SonyAccount.objects.all()
-    serializer_class = SonyAccountSerializer
+    serializer_class = ManagementSonyAccountSerializer
 
 
 class ProductAddAPIView(generics.CreateAPIView):
     queryset = ProductCategory.objects.all()
-    serializer_class = ProductAddSerializer
+    serializer_class = ManagementProductAddSerializer
