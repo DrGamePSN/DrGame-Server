@@ -65,7 +65,7 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['title', 'main_img', 'game_images', 'description', 'is_trend', 'units_sold',
+        fields = ['id', 'title', 'main_img', 'game_images', 'description', 'is_trend', 'units_sold',
                   'is_deleted', 'created_at', 'updated_at']
 
     def validate(self, data):
