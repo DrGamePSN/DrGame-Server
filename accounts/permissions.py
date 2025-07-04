@@ -1,5 +1,6 @@
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.utils.decorators import method_decorator
 from functools import wraps
 
@@ -31,34 +32,18 @@ class IsSuperuserOrHasRole(BasePermission):
                 hasattr(request.user, 'main_manager'))
 
 
+def restrict_access(user_boolean_field):
+    def decorator(view_class):
+        original_initial = view_class.initial
 
+        @wraps(view_class)
+        def new_initial(self, request, *args, **kwargs):
+            employee = request.user.employee
+            if not getattr(employee, user_boolean_field, False):
+                raise PermissionDenied(f"Access denied: {user_boolean_field} is False or not present.")
+            return original_initial(self, request, *args, **kwargs)
 
-def restrict_access(*required_permissions):
-    """
-    دکوراتوری که دسترسی به ویو را بر اساس فیلدهای بولین مدل Employee محدود می‌کند.
-    :param required_permissions: لیست فیلدهای بولین (مثل 'is_access_to_products') که باید True باشند.
-    """
-    def decorator(view_func):
-        @wraps(view_func)
-        def wrapper(view, request, *args, **kwargs):
-            # بررسی اینکه کاربر لاگین کرده و مدل Employee دارد
-            if not request.user.is_authenticated:
-                return HttpResponseForbidden("شما باید لاگین کنید.")
+        view_class.initial = new_initial
+        return view_class
 
-            try:
-                employee = request.user.employee  # فرض می‌کنیم مدل Employee به User مرتبط است
-            except AttributeError:
-                return HttpResponseForbidden("کاربر معتبر نیست.")
-
-            # بررسی همه پرمیژن‌های موردنیاز
-            for permission in required_permissions:
-                if not getattr(employee, permission, False):
-                    return HttpResponseForbidden(f"دسترسی به این بخش ({permission}) ندارید.")
-
-            # اگر همه پرمیژن‌ها True باشند، ویو اجرا می‌شود
-            return view_func(view, request, *args, **kwargs)
-
-        return wrapper
-
-    # برای سازگاری با ویوهای کلاسی
-    return method_decorator(decorator, name='dispatch')
+    return decorator

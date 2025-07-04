@@ -1,11 +1,12 @@
 from pyexpat.errors import messages
 
 from django.db.models import Q, Count
+from django.utils.decorators import method_decorator
 from rest_framework import generics
 from rest_framework.response import Response
 
 from accounts.auth import CustomJWTAuthentication
-from accounts.permissions import IsEmployee
+from accounts.permissions import IsEmployee, restrict_access
 from employees.serializers import GameOrderSerializer, OrderListSerializer, SonyAccountSerializer
 from payments.models import GameOrder
 from storage.models import SonyAccount
@@ -14,6 +15,7 @@ from storage.models import SonyAccount
 # Create your views here.
 
 # order filtering
+@restrict_access('is_access_to_orders')
 class GameOrderList(generics.ListAPIView):
     queryset = GameOrder.objects.filter(status='in_progress')
     serializer_class = OrderListSerializer
