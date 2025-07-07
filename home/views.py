@@ -5,10 +5,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
+from accounts.auth import CustomJWTAuthentication
 from storage.models import Game, Product, ProductCategory
 from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
 from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
@@ -26,11 +27,13 @@ from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, 
 class GameTrendListAPIView(generics.ListAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_trend=True).all()
+    permission_classes = [AllowAny]
 
 
 class GameTrendRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_trend=True).all()
+    permission_classes = [AllowAny]
 
 
 # store
@@ -39,6 +42,7 @@ class ProductListAPIView(generics.ListAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
         is_deleted=False).order_by('-created_at').all()
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category', 'color', 'company', 'is_deleted']
     search_fields = ['title', 'description']
@@ -50,6 +54,7 @@ class ProductRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
         is_deleted=False).all()
+    permission_classes = [AllowAny]
 
 
 # Game products
@@ -60,11 +65,13 @@ class GameListAPIView(generics.ListAPIView):
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'is_trend']
     ordering = ['-created_at']
+    permission_classes = [AllowAny]
 
 
 class GameRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameSerializer
     queryset = Game.objects.filter(is_deleted=False).prefetch_related('game_images').all()
+    permission_classes = [AllowAny]
 
 
 # category
@@ -76,6 +83,7 @@ class ProductCategoryListAPIView(generics.ListAPIView):
     ).all()
     filter_backends = [SearchFilter]
     search_fields = ['title', 'products__title']
+    permission_classes = [AllowAny]
 
 
 class ProductCategoryRetrieveAPIView(generics.RetrieveAPIView):
@@ -84,10 +92,12 @@ class ProductCategoryRetrieveAPIView(generics.RetrieveAPIView):
         Prefetch('products',
                  queryset=Product.objects.select_related('company', 'color', 'category'))
     ).all()
+    permission_classes = [AllowAny]
 
 
 class ProductByCategoryRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cat_id = self.kwargs.get('pro_category')
@@ -99,6 +109,7 @@ class ProductByCategoryRetrieveAPIView(generics.RetrieveAPIView):
 
 class MostSoldProductsListAPIView(generics.ListAPIView):
     serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Product.objects.select_related('color', 'category', 'company').prefetch_related('images').filter(
@@ -107,6 +118,7 @@ class MostSoldProductsListAPIView(generics.ListAPIView):
 
 class MostSoldGamesListAPIView(generics.ListAPIView):
     serializer_class = GameSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Game.objects.filter(is_deleted=False).prefetch_related('game_images').order_by('-units_sold')[:2]
@@ -116,17 +128,20 @@ class MostSoldGamesListAPIView(generics.ListAPIView):
 class CartDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
     queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
+    permission_classes = [AllowAny]
     lookup_field = 'id'
 
 
 class CartCreateAPIView(generics.CreateAPIView):
     serializer_class = CartCreateSerializer
+    permission_classes = [AllowAny]
     queryset = Cart.objects.filter(is_deleted=False).all()
 
 
 class CartDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CartSerializer
     queryset = Cart.objects.filter(is_deleted=False).all()
+    permission_classes = [AllowAny]
     lookup_field = 'id'
 
 
@@ -134,6 +149,7 @@ class CartDeleteAPIView(generics.DestroyAPIView):
 
 class CartItemListAPIView(generics.ListAPIView):
     serializer_class = CartItemSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -143,6 +159,7 @@ class CartItemListAPIView(generics.ListAPIView):
 
 class CartItemDetailAPIView(generics.RetrieveAPIView):
     serializer_class = CartItemSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -152,6 +169,7 @@ class CartItemDetailAPIView(generics.RetrieveAPIView):
 
 class CartItemAddCreateAPIView(generics.CreateAPIView):
     serializer_class = AddCartItemSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -172,6 +190,7 @@ class CartItemAddCreateAPIView(generics.CreateAPIView):
 
 class CartItemUpdateAPIView(generics.UpdateAPIView):
     serializer_class = UpdateCartItemSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -198,6 +217,7 @@ class CartItemUpdateAPIView(generics.UpdateAPIView):
 
 class CartItemDeleteAPIView(generics.DestroyAPIView):
     serializer_class = CartItemSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         cart = self.kwargs.get('id')
@@ -223,6 +243,7 @@ class BlogCategoryListAPIView(generics.ListAPIView):
     serializer_class = BlogCategorySerializer
     filter_backends = [SearchFilter, ]
     search_fields = ['title']
+    permission_classes = [AllowAny]
 
 
 class BlogCategoryCreateAPIView(generics.CreateAPIView):
@@ -247,6 +268,7 @@ class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
 class BlogTagListAPIView(generics.ListAPIView):
     queryset = BlogTag.objects.all()
     serializer_class = BlogTagSerializer
+    permission_classes = [AllowAny]
 
 
 class BlogTagCreateAPIView(generics.CreateAPIView):
@@ -276,6 +298,7 @@ class BlogPostListAPIView(generics.ListAPIView):
     search_fields = ['title']
     filterset_fields = ['category']
     ordering_fields = ['created_at']
+    permission_classes = [AllowAny]
 
 
 class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
@@ -283,6 +306,7 @@ class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
         status='published').all()
     serializer_class = BlogPostDetailSerializer
     lookup_field = 'slug'
+    permission_classes = [AllowAny]
 
 
 class BlogPostCreateAPIView(generics.CreateAPIView):
@@ -342,6 +366,7 @@ class BlogPostListByCategoryAPIView(generics.ListAPIView):
 class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
     serializer_class = BlogPostDetailSerializer
     lookup_field = 'slug'
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         category_slug = self.kwargs.get('category_slug')
@@ -355,6 +380,7 @@ class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
 
 class AboutUsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = AboutUsSerializer
+    permission_classes = [AllowAny]
 
     def get_object(self):
         obj = get_object_or_404(AboutUs.objects.filter(is_deleted=False))
@@ -394,6 +420,7 @@ class AboutUsUpdateAPIView(generics.UpdateAPIView):
 
 class ContactUsRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ContactUsSerializer
+    permission_classes = [AllowAny]
 
     def get_object(self):
         obj = get_object_or_404(ContactUs.objects.filter(is_deleted=False))
@@ -432,6 +459,7 @@ class ContactUsDeleteAPIView(generics.DestroyAPIView):
 
 class ContactSubmissionCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
     serializer_class = ContactSubmissionSerializer
     queryset = ContactSubmission.objects.select_related('user').all()
 
@@ -444,6 +472,7 @@ class ContactSubmissionCreateAPIView(generics.CreateAPIView):
 class CourseListAPIView(generics.ListAPIView):
     serializer_class = CourseListCreateSerializer
     queryset = Course.objects.filter(status='published').prefetch_related('videos').all()
+    permission_classes = [AllowAny]
 
 
 class CourseRetrieveAPIView(generics.RetrieveAPIView):
@@ -453,6 +482,7 @@ class CourseRetrieveAPIView(generics.RetrieveAPIView):
         queryset=Video.objects.filter(status='published').order_by('priority')
     )).all()
     lookup_field = 'slug'
+    permission_classes = [AllowAny]
 
 
 class CourseCreateAPIView(generics.CreateAPIView):
@@ -528,6 +558,7 @@ class VideoDeleteAPIView(generics.DestroyAPIView):
 class HomeBannerListView(generics.ListAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
+    permission_classes = [AllowAny]
 
 
 class HomeBannerCreateView(generics.CreateAPIView):
@@ -542,6 +573,7 @@ class HomeBannerCreateView(generics.CreateAPIView):
 class HomeBannerDetailView(generics.RetrieveAPIView):
     serializer_class = HomeBannerSerializer
     queryset = HomeBanner.objects.all().order_by('order')
+    permission_classes = [AllowAny]
 
 
 class HomeBannerUpdateView(generics.UpdateAPIView):

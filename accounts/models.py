@@ -32,7 +32,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class MainManager(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='main_manager')
     name = models.CharField(max_length=100, unique=True)
     access = models.CharField(max_length=1, choices=(('1', '1'),), unique=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, null=True)
