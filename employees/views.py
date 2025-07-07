@@ -102,6 +102,3 @@ class EmployeeSonyAccountList(generics.ListAPIView):
         except AttributeError:
             return Response(status=400)
 
-
-class EmployeeGetSonyAccount(generics.RetrieveAPIView):
-    pass
