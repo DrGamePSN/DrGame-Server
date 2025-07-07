@@ -107,16 +107,6 @@ class CartCreateSerializer(serializers.ModelSerializer):
         fields = ['id']
         read_only_fields = ['id']
 
-    def create(self, validated_data):
-        request = self.context.get('request')
-        if request.user.is_authenticated:
-            return Cart.objects.create(user=request.user, **validated_data)
-        else:
-            if not request.session.session_key:
-                request.session.create()
-            return Cart.objects.create(session_key=request.session.session_key, **validated_data)
-
-
 # blog
 class BlogCategorySerializer(serializers.ModelSerializer):
     class Meta:
