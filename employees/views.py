@@ -1,12 +1,15 @@
+from importlib.metadata import pass_none
+
 from django.db.models import Q, Count
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 
 from accounts.auth import CustomJWTAuthentication
 from accounts.permissions import IsEmployee, restrict_access
-from employees.serializers import EmployeeGameSerializer, GameOrderSerializer, EmployeeSonyAccountSerializer
-from payments.models import GameOrder
-from storage.models import SonyAccount
+from employees.serializers import EmployeeGameSerializer, GameOrderSerializer, EmployeeSonyAccountMatchedSerializer, \
+    EmployeeSonyAccountSerializer, EmployeeTransactionSerializer
+from payments.models import GameOrder, Transaction
+from storage.models import SonyAccount, SonyAccountGame
 
 
 # Create your views here.
@@ -60,7 +63,7 @@ class EmployeePanelGameOrderDetail(generics.RetrieveAPIView):
 
 
 class EmployeePanelSonyAccountByOrderGamesView(generics.ListAPIView):
-    serializer_class = EmployeeSonyAccountSerializer
+    serializer_class = EmployeeSonyAccountMatchedSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
@@ -89,7 +92,7 @@ class EmployeePanelSonyAccountByOrderGamesView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-class EmployeeSonyAccountList(generics.ListAPIView):
+class EmployeePanelSonyAccountList(generics.ListAPIView):
     serializer_class = EmployeeSonyAccountSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
@@ -100,5 +103,64 @@ class EmployeeSonyAccountList(generics.ListAPIView):
             employee = user.employee
             return SonyAccount.objects.filter(employee=employee)
         except AttributeError:
-            return Response(status=400)
+            return Response(status=404)
 
+
+class EmployeePanelGetNewSonyAccount(generics.RetrieveAPIView):
+    queryset = SonyAccount.objects.filter(is_owned=False, is_deleted=False)
+    serializer_class = EmployeeSonyAccountSerializer
+    permission_classes = [IsEmployee]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get_object(self):
+        try:
+            oldest_account = self.queryset.order_by('created_at').first()
+            if not oldest_account:
+                return Response(
+                    {"error": "هیچ حساب Sony با شرایط مورد نظر یافت نشد."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            if oldest_account.employee:
+                unchecked_games = SonyAccountGame.objects.filter(
+                    Q(account__employee=oldest_account.employee) & Q(is_checked=False)
+                )
+                if unchecked_games.exists():
+                    return Response(
+                        {"error": "شما حساب‌های بازی چک‌نشده دارید."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return oldest_account
+        except SonyAccount.DoesNotExist:
+            return Response(
+                {"error": "هیچ حساب Sony با شرایط مورد نظر یافت نشد."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # اگر پاسخ خطا باشد، مستقیماً برگردانده می‌شود
+        if isinstance(instance, Response):
+            return instance
+        # سریالایز کردن و برگرداندن یوزرنیم و پسورد
+        serializer = self.get_serializer(instance)
+        return Response({
+            "username": serializer.data["username"],
+            "password": serializer.data["password"]
+        })
+
+
+# class MakePayMentLinkForSOnyAccount(generics.RetrieveAPIView):
+#     pass
+
+class EmployeePanelOwnedTransactionList(generics.ListAPIView):
+    serializer_class = EmployeeTransactionSerializer
+    permission_classes = [IsEmployee]
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get_queryset(self):
+        receiver = self.request.user
+        try:
+            return Transaction.objects.filter(receiver=receiver, is_deleted=False)
+        except AttributeError:
+            return Response(status=404)
