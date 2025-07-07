@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, APIKey, MainManager
+from .models import CustomUser, APIKey, MainManager, OTP
 
 
 # Register your models here.
@@ -33,6 +33,13 @@ class APIKeyAdmin(admin.ModelAdmin):
 
 @admin.register(MainManager)
 class MainManagerAdmin(admin.ModelAdmin):
+    class Meta:
+        list_display = '__all__'
+        search_fields = '__all__'
+
+
+@admin.register(OTP)
+class OTPAdmin(admin.ModelAdmin):
     class Meta:
         list_display = '__all__'
         search_fields = '__all__'

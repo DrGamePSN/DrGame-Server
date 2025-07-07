@@ -1,37 +1,28 @@
 from django.db import models
-
 from accounts.models import CustomUser
 
 
 # Create your models here.
-class EmployeeRole(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField(max_length=5000)
-    type = models.CharField(max_length=100, choices=(
-        ('operational', 'عملیاتی'),
-        ('in organ', 'درون سازمانی')
-    ), null=True, blank=True)
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.title
-
 
 class Employee(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    role = models.ForeignKey(EmployeeRole, on_delete=models.SET_NULL, null=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee')
     profile_picture = models.ImageField(null=True, upload_to='profile_pictures/employees/')
     first_name = models.CharField(max_length=100, null=True)
     last_name = models.CharField(max_length=100, null=True)
     national_code = models.CharField(max_length=10, null=True)
     employee_id = models.CharField(max_length=11, null=True)
     balance = models.FloatField(null=True)
-    income_type = models.CharField(max_length=20, choices=(
-        ('Commission', 'پورسانت'),
-        ('Fixed salary', 'حقوق ثابت')
-    ), null=True)
+    has_commission = models.BooleanField(default=False)
+    commission_amount = models.IntegerField(default=0)
+    has_access_to_orders = models.BooleanField(default=False)
+    has_access_to_accounts = models.BooleanField(default=False)
+    has_access_to_products = models.BooleanField(default=False)
+    has_access_to_customers = models.BooleanField(default=False)
+    has_access_to_transactions = models.BooleanField(default=False)
+    has_access_to_calls = models.BooleanField(default=False)
+    has_access_to_chat = models.BooleanField(default=False)
+    is_account_setter = models.BooleanField(default=False)
+    is_data_uploader = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

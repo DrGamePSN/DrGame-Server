@@ -6,6 +6,7 @@ from uuid import uuid4
 from django.utils import timezone
 from slugify import slugify
 
+from accounts.models import CustomUser
 from storage.models import Product, ProductColor
 
 
@@ -169,7 +170,7 @@ class ContactUs(models.Model):
 class ContactSubmission(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    email = models.EmailField(blank=True,null = True,validators=[EmailValidator()])
+    email = models.EmailField(blank=True, null=True, validators=[EmailValidator()])
     phone = models.CharField(max_length=11)
     subject = models.CharField(max_length=200)
     message = models.TextField()
@@ -238,7 +239,6 @@ class Video(models.Model):
 
     def __str__(self):
         return f'{self.title} - {self.course.title}'
-
 
 
 # Banner

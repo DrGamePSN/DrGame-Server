@@ -4,7 +4,9 @@ from datetime import timedelta
 import requests
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
@@ -12,6 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from DrGame import settings
 from accounts.auth import CustomJWTAuthentication
 from accounts.models import CustomUser, OTP, APIKey, MainManager
+from accounts.serializers import VerifyOTPSerializer, VerifyOTPResponseSerializer, RefreshTokenSerializer, \
+    RefreshTokenResponseSerializer, RequestOTPSerializer, RequestOTPResponseSerializer
 from accounts.throttles import PhoneRateThrottle
 from customers.models import Customer, BusinessCustomer
 from employees.models import Employee, Repairman
@@ -57,55 +61,45 @@ class CreateAPIKeyView(APIView):
 
 class RequestOTPView(APIView):
     throttle_classes = [AnonRateThrottle, PhoneRateThrottle]
+    permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=RequestOTPSerializer,
+        responses={
+            200: RequestOTPResponseSerializer,
+            400: RequestOTPResponseSerializer,
+            403: RequestOTPResponseSerializer,
+            500: RequestOTPResponseSerializer
+        },
+        description="ارسال درخواست OTP با شماره موبایل"
+    )
     def post(self, request):
-        # چک کردن API Key
+        # (بقیه کد همونیه که فرستادی)
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
                 {"error": "API Key نامعتبر است"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
         phone = request.data.get('phone')
         if not phone:
             return Response(
                 {"error": "شماره موبایل الزامی است"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        user, created = CustomUser.objects.get_or_create(phone=phone, defaults={'is_active': True})
+        user = CustomUser.objects.filter(phone=phone).first()
+        if not user:
+            user = CustomUser.objects.create(phone=phone, is_active=False)
+        OTP.objects.filter(user=user).delete()
         otp_code = str(secrets.randbelow(100000000)).zfill(8)
         expires_at = timezone.now() + timedelta(minutes=2)
-        OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
-        faraz_url = "https://api2.ippanel.com/api/v1/sms/pattern/normal/send"
-        faraz_api_key = "OWYwNmNlODYtNTc2YS00OTEzLWIzZmMtYWFiNzQxOGIyN2Y1NzMzZmNiOGI2ODMyZmY1Y2JhZWNjNzVlNWNhOGMyOWU="
-        faraz_phone = '+98' + phone[1:]
-        headers = {
-            "apikey": faraz_api_key,
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "code": "0li89sh8n64thu4",
-            "sender": "+983000505",
-            "recipient": faraz_phone,
-            "variable": {
-                "code": otp_code
-            }
-        }
-        try:
-            response = requests.post(faraz_url, json=payload, headers=headers, timeout=10)
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Headers: {response.headers}")
-            print(f"Response Body: {response.text}")
-            try:
-                print(f"Response JSON: {response.json()}")
-            except ValueError:
-                print("Response is not valid JSON")
-
-        except requests.exceptions.RequestException as e:
-            print(f"Request Error: {str(e)}")
-        print(f"OTP for {phone}: {otp_code}")
+        otp = OTP.objects.create(user=user, code=otp_code, expires_at=expires_at)
+        success, message = otp.send_otp(phone=phone, otp_code=otp_code)
+        if not success:
+            return Response(
+                {"error": f"خطا در ارسال OTP: {message}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(
             {"message": "لطفاً کد OTP را وارد کنید"},
             status=status.HTTP_200_OK
@@ -114,23 +108,33 @@ class RequestOTPView(APIView):
 
 class VerifyOTPView(APIView):
     throttle_classes = [AnonRateThrottle]
+    permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=VerifyOTPSerializer,
+        responses={
+            200: VerifyOTPResponseSerializer,
+            400: VerifyOTPResponseSerializer,
+            403: VerifyOTPResponseSerializer,
+            404: VerifyOTPResponseSerializer
+        },
+        description="تأیید کد OTP و دریافت توکن‌های دسترسی"
+    )
     def post(self, request):
+        # (بقیه کد همونیه که فرستادی)
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
                 {"error": "Invalid API Key"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
         phone = request.data.get('phone')
         code = request.data.get('code')
         if not phone or not code:
             return Response(
-                {"error": "Phone number and OTP code are required"},
+                {"error": "Phone Parents and OTP code are required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         try:
             user = CustomUser.objects.get(phone=phone)
         except CustomUser.DoesNotExist:
@@ -138,7 +142,6 @@ class VerifyOTPView(APIView):
                 {"error": "User not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
-
         try:
             otp = OTP.objects.filter(user=user).latest('created_at')
             if otp.code != code or not otp.is_valid():
@@ -146,16 +149,18 @@ class VerifyOTPView(APIView):
                     {"error": "Invalid or expired OTP"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            otp.delete()
+            if not user.is_active:
+                user.is_active = True
+                user.save()
         except OTP.DoesNotExist:
             return Response(
                 {"error": "No OTP found"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
-
         response = Response(
             {"message": "Login successful"},
             status=status.HTTP_200_OK
@@ -164,44 +169,51 @@ class VerifyOTPView(APIView):
             key='access_token',
             value=access_token,
             httponly=True,
-            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
             max_age=3600
         )
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             httponly=True,
-            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
             max_age=432000
         )
-
         return response
 
 
 class RefreshTokenView(APIView):
     throttle_classes = [AnonRateThrottle]
+    permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=RefreshTokenSerializer,
+        responses={
+            200: RefreshTokenResponseSerializer,
+            401: RefreshTokenResponseSerializer,
+            403: RefreshTokenResponseSerializer
+        },
+        description="رفرش توکن برای دریافت توکن دسترسی جدید"
+    )
     def post(self, request):
+        # (بقیه کد همونیه که فرستادی)
         api_key = request.headers.get('X-API-Key')
         if not api_key or not APIKey.objects.filter(key=api_key, is_active=True).exists():
             return Response(
                 {"error": "Invalid API Key"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
         refresh_token = request.COOKIES.get('refresh_token')
         if not refresh_token:
             return Response(
                 {"error": "No refresh token provided"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
         try:
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
-
             response = Response(
                 {"message": "Token refreshed successfully"},
                 status=status.HTTP_200_OK
@@ -210,23 +222,20 @@ class RefreshTokenView(APIView):
                 key='access_token',
                 value=access_token,
                 httponly=True,
-                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                 max_age=3600
             )
-
             if hasattr(refresh, 'token'):
                 response.set_cookie(
                     key='refresh_token',
                     value=str(refresh),
                     httponly=True,
-                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],  # False برای توسعه
-                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],  # Lax برای توسعه
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                     max_age=432000
                 )
-
             return response
-
         except TokenError as e:
             return Response(
                 {"error": f"Invalid refresh token: {str(e)}"},
@@ -236,6 +245,8 @@ class RefreshTokenView(APIView):
 
 class LogoutView(APIView):
     throttle_classes = [AnonRateThrottle]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get(self, request):  # اضافه کردن متد GET
         return self.post(request)  # استفاده از منطق POST
@@ -260,6 +271,7 @@ class LogoutView(APIView):
 
 class UserStatusView(APIView):
     authentication_classes = [CustomJWTAuthentication]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         if not request.user.is_authenticated:

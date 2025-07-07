@@ -1,11 +1,14 @@
 import secrets
 import uuid
+from datetime import timedelta
 
+import requests
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
+from DrGame import settings
 from accounts.manager import CustomUserManager
 
 
@@ -29,7 +32,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class MainManager(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='main_manager')
     name = models.CharField(max_length=100, unique=True)
     access = models.CharField(max_length=1, choices=(('1', '1'),), unique=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, null=True)
@@ -47,6 +50,42 @@ class OTP(models.Model):
     def is_valid(self):
         return timezone.now() <= self.expires_at
 
+    def send_otp(self, phone, otp_code):
+        url = settings.FARAZ_URL
+        api_key = settings.FARAZ_API_KEY
+        phone = '+98' + phone[1:]  # فرمت شماره تلفن
+        headers = {
+            "apikey": api_key,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "code": "0li89sh8n64thu4",
+            "sender": "+983000505",
+            "recipient": phone,
+            "variable": {
+                "code": otp_code
+            }
+        }
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            print(f"Status Code: {response.status_code}")
+            print(f"Response Headers: {response.headers}")
+            print(f"Response Body: {response.text}")
+
+            try:
+                response_json = response.json()
+                print(f"Response JSON: {response_json}")
+                if response_json.get('status') == 'OK' and response_json.get('code') == 200:
+                    print(f"OTP for {phone}: {otp_code}")
+                    return True, "پیامک با موفقیت ارسال شد"
+                else:
+                    return False, f"خطا در ارسال پیامک: {response_json.get('error_message', 'نامشخص')}"
+            except ValueError:
+                print("Response is not valid JSON")
+                return False, "خطا در ارسال پیامک: پاسخ API معتبر نیست"
+        except requests.exceptions.RequestException as e:
+            print(f"Request Error: {str(e)}")
+            return False, f"خطا در ارتباط با سرویس پیامک: {str(e)}"
 
 class APIKey(models.Model):
     key = models.CharField(max_length=70, unique=True)

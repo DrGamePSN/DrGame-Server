@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from customers.models import Customer
+from employees.models import Employee
 
 
 # Create your models here.
@@ -101,7 +102,7 @@ class Game(models.Model):
 
     def clean(self):
         if self.is_trend:
-            games_count = Game.objects.filter(is_trend=True).exclude(pk = self.pk).count()
+            games_count = Game.objects.filter(is_trend=True).exclude(pk=self.pk).count()
             if games_count >= 4:
                 raise ValidationError("حداکثر ۴ بازی می‌توانند ترند باشند")
 
@@ -127,6 +128,7 @@ class GameImage(models.Model):
 class SonyAccount(models.Model):
     username = models.CharField(max_length=100, unique=True, null=True)
     password = models.CharField(max_length=100, null=True)
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)
     two_step = models.IntegerField(null=True, blank=True)
     status = models.ForeignKey(SonyAccountStatus, on_delete=models.SET_NULL, null=True, blank=True)
     bank_account_status = models.BooleanField(null=True, blank=True)
@@ -139,6 +141,7 @@ class SonyAccount(models.Model):
         ('Asia', 'asia'),
         ('Mix', 'mix'),
     ))
+    is_owned = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

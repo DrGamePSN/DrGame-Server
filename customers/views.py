@@ -4,6 +4,8 @@ from rest_framework import generics, status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from accounts.auth import CustomJWTAuthentication
 from .models import Customer, BusinessCustomer
 from .serializers import (
     CustomerProfileSerializer,
@@ -22,10 +24,12 @@ class CustomerProfileCreateAPIView(generics.CreateAPIView):
     serializer_class = CustomerProfileCreateSerializer
     queryset = Customer.objects.select_related('user').filter(is_deleted=False).all()
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
 
 class CustomerProfileRetrieveAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_object(self):
         try:
@@ -46,6 +50,7 @@ class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
     serializer_class = BusinessCustomerUpgradeSerializer
     queryset = BusinessCustomer.objects.select_related('user').all()
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def create(self, request, *args, **kwargs):
         customer = get_object_or_404(Customer, user=request.user)
@@ -64,60 +69,73 @@ class UpgradeToBusinessCustomerCreateAPIView(generics.CreateAPIView):
 class CustomerOrderListAPIView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                        is_deleted=False)
 
 
 class CustomerOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return Order.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return Order.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                        is_deleted=False)
 
 
 class CustomerGameOrderListAPIView(generics.ListAPIView):
     serializer_class = GameOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                            is_deleted=False)
 
 
 class CustomerGameOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = GameOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return GameOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return GameOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                            is_deleted=False)
 
 
 class CustomerRepairOrderListAPIView(generics.ListAPIView):
     serializer_class = RepairOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                              is_deleted=False)
 
 
 class CustomerRepairOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = RepairOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
-        return RepairOrder.objects.select_related('product', 'order_type','customer').filter(customer=customer, is_deleted=False)
+        return RepairOrder.objects.select_related('product', 'order_type', 'customer').filter(customer=customer,
+                                                                                              is_deleted=False)
 
 
 class CustomerCourseOrderListAPIView(generics.ListAPIView):
     serializer_class = CourseOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -128,6 +146,7 @@ class CustomerCourseOrderListAPIView(generics.ListAPIView):
 class CustomerCourseOrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = CourseOrderSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         customer = get_object_or_404(Customer, user=self.request.user)
@@ -138,6 +157,7 @@ class CustomerCourseOrderRetrieveAPIView(generics.RetrieveAPIView):
 class CustomerTransactionListAPIView(generics.ListAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status']
@@ -152,6 +172,7 @@ class CustomerTransactionListAPIView(generics.ListAPIView):
 class CustomerTransactionRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         return Transaction.objects.filter(

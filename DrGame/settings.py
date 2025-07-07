@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-v@c4&8=y8(u%c_690yq0d$ulwcp!zvnb#f^^t$&@jljc#!#n-e
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'gamedr.ir', 'www.gamedr.ir']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'gamedr.ir', 'www.gamedr.ir']
 # Application definition
 
 INSTALLED_APPS = [
@@ -141,8 +141,11 @@ REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'PAGE_SIZE': 10,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'accounts.auth.CustomJWTAuthentication',
+    # ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -177,8 +180,8 @@ SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',
     'AUTH_COOKIE_REFRESH': 'refresh_token',
     'AUTH_COOKIE_HTTP_ONLY': True,
-    'AUTH_COOKIE_SECURE': False,
-    'AUTH_COOKIE_SAMESITE': 'Lax',
+    'AUTH_COOKIE_SECURE': True,
+    'AUTH_COOKIE_SAMESITE': 'None',
 }
 # CORS_ORIGIN_ALLOW = [
 #     'localhost:3000',
@@ -196,7 +199,7 @@ CORS_ALLOW_HEADERS = [
     'origin',
     'user-agent',
     'x-csrftoken',
-    'x-api-key',  # هدر سفارشی شما
+    'x-api-key',
 ]
 CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT = False
@@ -227,6 +230,10 @@ AWS_STORAGE_BUCKET_NAME = LIARA_BUCKET_NAME
 AWS_S3_ENDPOINT_URL = LIARA_ENDPOINT
 AWS_S3_REGION_NAME = 'us-east-1'
 
+# FARAZ SMS Configuration
+FARAZ_URL = os.getenv("FARAZ_URL")
+FARAZ_API_KEY = os.getenv("FARAZ_API_KEY")
+
 # Django-storages configuration
 STORAGES = {
     "default": {
@@ -237,5 +244,4 @@ STORAGES = {
     },
 }
 INTERNAL_IPS = [
-
     "127.0.0.1", ]
