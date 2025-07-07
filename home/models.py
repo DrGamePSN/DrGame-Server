@@ -13,7 +13,6 @@ from storage.models import Product, ProductColor
 # Shopping
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
