@@ -1,7 +1,4 @@
-from pyexpat.errors import messages
-
 from django.db.models import Q, Count
-from django.utils.decorators import method_decorator
 from rest_framework import generics
 from rest_framework.response import Response
 
@@ -92,7 +89,7 @@ class EmployeePanelSonyAccountByOrderGamesView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-class SonyAccountList(generics.ListAPIView):
+class EmployeeSonyAccountList(generics.ListAPIView):
     serializer_class = EmployeeSonyAccountSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
@@ -104,3 +101,7 @@ class SonyAccountList(generics.ListAPIView):
             return SonyAccount.objects.filter(employee=employee)
         except AttributeError:
             return Response(status=400)
+
+
+class EmployeeGetSonyAccount(generics.RetrieveAPIView):
+    pass

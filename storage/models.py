@@ -128,7 +128,8 @@ class GameImage(models.Model):
 class SonyAccount(models.Model):
     username = models.CharField(max_length=100, unique=True, null=True)
     password = models.CharField(max_length=100, null=True)
-    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True)
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='employee_accounts')
     two_step = models.IntegerField(null=True, blank=True)
     status = models.ForeignKey(SonyAccountStatus, on_delete=models.SET_NULL, null=True, blank=True)
     bank_account_status = models.BooleanField(null=True, blank=True)
