@@ -7,29 +7,27 @@ from rest_framework.response import Response
 
 from accounts.auth import CustomJWTAuthentication
 from accounts.permissions import IsEmployee, restrict_access
-from employees.serializers import GameOrderSerializer, OrderListSerializer, SonyAccountSerializer
+from employees.serializers import EmployeeGameSerializer, GameOrderSerializer, EmployeeSonyAccountSerializer
 from payments.models import GameOrder
 from storage.models import SonyAccount
 
 
 # Create your views here.
 
-# order filtering
-@restrict_access('is_access_to_orders')
-class GameOrderList(generics.ListAPIView):
+# ==================== Personal Views ====================
+class EmployeePanelAcceptedGameOrderList(generics.ListAPIView):
     queryset = GameOrder.objects.filter(status='in_progress')
-    serializer_class = OrderListSerializer
+    serializer_class = GameOrderSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
 
-class GameOrderOwnedList(generics.ListAPIView):
-    serializer_class = OrderListSerializer
+class EmployeePanelOwnedGameOrderList(generics.ListAPIView):
+    serializer_class = GameOrderSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
-        # گرفتن کارمند متصل به کاربر احراز هویت‌شده
         user = self.request.user
         try:
             employee = user.employee
@@ -40,15 +38,15 @@ class GameOrderOwnedList(generics.ListAPIView):
             return Response(status=400)
 
 
-class GameOrderUnaccepted(generics.ListAPIView):
+class EmployeePanelGameOrderUnacceptedList(generics.ListAPIView):
     queryset = GameOrder.objects.filter(status='payed')
-    serializer_class = OrderListSerializer
+    serializer_class = GameOrderSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
 
-class GameOrderDetail(generics.RetrieveAPIView):
-    serializer_class = GameOrderSerializer
+class EmployeePanelGameOrderDetail(generics.RetrieveAPIView):
+    serializer_class = EmployeeGameSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
     lookup_field = 'pk'
@@ -64,8 +62,8 @@ class GameOrderDetail(generics.RetrieveAPIView):
             return Response(status=400)
 
 
-class SonyAccountByOrderGamesView(generics.ListAPIView):
-    serializer_class = SonyAccountSerializer
+class EmployeePanelSonyAccountByOrderGamesView(generics.ListAPIView):
+    serializer_class = EmployeeSonyAccountSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
@@ -94,9 +92,8 @@ class SonyAccountByOrderGamesView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-# sony accounts
 class SonyAccountList(generics.ListAPIView):
-    serializer_class = SonyAccountSerializer
+    serializer_class = EmployeeSonyAccountSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 

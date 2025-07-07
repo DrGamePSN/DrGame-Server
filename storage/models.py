@@ -141,6 +141,7 @@ class SonyAccount(models.Model):
         ('Asia', 'asia'),
         ('Mix', 'mix'),
     ))
+    is_owned = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
