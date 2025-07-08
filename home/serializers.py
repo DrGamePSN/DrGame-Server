@@ -19,7 +19,7 @@ class ProductCartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['title', 'color', 'price']
+        fields = ['title', 'main_img','color', 'price']
 
 
 class CartItemReadSerializer(serializers.ModelSerializer):
