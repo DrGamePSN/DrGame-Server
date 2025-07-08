@@ -12,12 +12,11 @@ from rest_framework import status
 from accounts.auth import CustomJWTAuthentication
 from storage.models import Game, Product, ProductCategory
 from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
-from .serializers import CartSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CartItemSerializer, \
-    CartCreateSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
+from .serializers import CartSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
     CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
     BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
     CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
-    HomeBannerSerializer
+    HomeBannerSerializer, CartItemWriteSerializer
 from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
     Video, HomeBanner
 
@@ -125,115 +124,68 @@ class MostSoldGamesListAPIView(generics.ListAPIView):
 
 
 # cart
-class CartDetailAPIView(generics.RetrieveAPIView):
+class CartAPIView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
-    queryset = Cart.objects.filter(is_deleted=False).prefetch_related('cart_items__product__color').all()
-    permission_classes = [AllowAny]
-    lookup_field = 'id'
-
-
-class CartCreateAPIView(generics.CreateAPIView):
-    serializer_class = CartCreateSerializer
-    permission_classes = [AllowAny]
-    queryset = Cart.objects.filter(is_deleted=False).all()
-
-
-class CartDeleteAPIView(generics.DestroyAPIView):
-    serializer_class = CartSerializer
-    queryset = Cart.objects.filter(is_deleted=False).all()
-    permission_classes = [AllowAny]
-    lookup_field = 'id'
-
-
-# cart-item
-
-class CartItemListAPIView(generics.ListAPIView):
-    serializer_class = CartItemSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
-                                                                                                     is_deleted=False))
+
+        return Cart.objects.filter(user=self.request.user, is_deleted=False).prefetch_related('cart_items__product__color')
+
+    def get_object(self):
+
+        return self.get_queryset().first() or Cart.objects.create(user=self.request.user)
 
 
-class CartItemDetailAPIView(generics.RetrieveAPIView):
-    serializer_class = CartItemSerializer
-    permission_classes = [AllowAny]
+class AddToCartAPIView(generics.CreateAPIView):
+    serializer_class = CartItemWriteSerializer
+    queryset = CartItem.objects.select_related('cart', 'product__color').none()
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
-                                                                                                     is_deleted=False))
-
-
-class CartItemAddCreateAPIView(generics.CreateAPIView):
-    serializer_class = AddCartItemSerializer
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
-                                                                                                     is_deleted=False))
-
-    def get_serializer_context(self):
-        return {'cart': self.kwargs.get('id')}
-
-    def post(self, request, *args, **kwargs):
-        cart = self.kwargs.get('id')
-        created_serializer = self.serializer_class(data=request.data, context={'cart': cart})
-        created_serializer.is_valid(raise_exception=True)
-        created_item = created_serializer.save()
-        serializer = CartItemSerializer(created_item)
-        return Response(serializer.data)
+    def create(self, request, *args, **kwargs):
+        cart, _ = Cart.objects.get_or_create(
+            user=request.user,
+            is_deleted=False
+        )
+        serializer = self.get_serializer(data=request.data, context={'cart': cart})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CartItemUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = UpdateCartItemSerializer
-    permission_classes = [AllowAny]
+class RemoveFromCartAPIView(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
-                                                                                                     is_deleted=False))
-
-    def get_serializer_context(self):
-        return {'item_id': self.kwargs.get('pk')}
-
-    def put(self, request, *args, **kwargs):
-        cart = self.kwargs.get('id')
-        pk = self.kwargs.get('pk')
-        try:
-            cart_item = CartItem.objects.get(cart=cart, pk=pk)
-            updated_serializer = self.serializer_class(cart_item, data=request.data)
-            updated_serializer.is_valid(raise_exception=True)
-            updated_item = updated_serializer.save()
-            serializer = CartItemSerializer(updated_item)
-            return Response(serializer.data)
-
-        except CartItem.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class CartItemDeleteAPIView(generics.DestroyAPIView):
-    serializer_class = CartItemSerializer
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        cart = self.kwargs.get('id')
-        return (CartItem.objects.select_related('product__color', 'product__company', 'cart').filter(cart=cart,
-                                                                                                     is_deleted=False))
+        return CartItem.objects.filter(cart__user=self.request.user)
 
     def delete(self, request, *args, **kwargs):
-        cart = self.kwargs.get('id')
-        pk = self.kwargs.get('pk')
+        cart = Cart.objects.filter(user=request.user, is_deleted=False).first()
+        if not cart:
+            return Response(
+                {"detail": "No active cart found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         try:
-            cart_item = CartItem.objects.get(cart=cart, pk=pk)
-            cart_item.delete()
+            cart_item = CartItem.objects.get(
+                cart=cart,
+                product_id=kwargs.get('product_id')
+            )
+
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+                cart_item.save()
+            else:
+                cart_item.delete()
+
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         except CartItem.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Item not found in cart."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 # blog-category

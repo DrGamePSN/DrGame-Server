@@ -22,92 +22,76 @@ class ProductCartItemSerializer(serializers.ModelSerializer):
         fields = ['title', 'color', 'price']
 
 
-class CartItemSerializer(serializers.ModelSerializer):
-    product = ProductCartItemSerializer()
-    total = serializers.SerializerMethodField()
+class CartItemReadSerializer(serializers.ModelSerializer):
+    product = ProductCartItemSerializer(read_only=True)
+    item_total = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
-        fields = ['product', 'quantity', 'total', ]
+        fields = ['id', 'product_id', 'product', 'quantity', 'item_total', 'created_at', 'updated_at']
+        read_only_fields = fields
 
-    def get_total(self, obj):
+    def get_item_total(self, obj):
         return obj.total_item_price
 
 
-class AddCartItemSerializer(serializers.ModelSerializer):
+class CartItemWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['product', 'quantity']
+        extra_kwargs = {
+            'quantity': {'min_value': 1}
+        }
 
     def validate(self, data):
         product_item = data['product']
         product = Product.objects.get(pk=product_item.pk)
         if data['quantity'] > product.stock:
-            raise serializers.ValidationError('out of stock!')
+            raise serializers.ValidationError({'quantity': 'تعداد درخواستی بیشتر از موجودی انبار است'})
         return data
 
     def create(self, validated_data):
-        cart_id = self.context['cart']
+        cart = self.context['cart']
         product = validated_data.get('product')
         quantity = validated_data.get('quantity')
-        try:
-            cart_item = CartItem.objects.get(product=product, cart_id=cart_id)
-            current_quantity = cart_item.quantity
-            if (current_quantity + quantity) > product.stock:
-                raise serializers.ValidationError('out of stock!')
+
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            defaults={'quantity': quantity}
+        )
+        if not created:
+            if (cart_item.quantity + quantity) > product.stock:
+                raise serializers.ValidationError({'quantity': 'تعداد کل بیشتر از موجودی انبار می‌شود'})
             else:
                 cart_item.quantity += quantity
                 cart_item.save()
-        except CartItem.DoesNotExist:
-            cart_item = CartItem.objects.create(cart_id=cart_id, **validated_data)
 
         self.instance = cart_item
         return cart_item
 
-
-class UpdateCartItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CartItem
-        fields = ['quantity', ]
-
-    def validate_quantity(self, value):
-        if value < 1:
-            raise serializers.ValidationError("Quantity must be at least 1")
-        return value
-
-    def validate(self, data):
-        cart_item = self.instance
-
-        # Check product stock
-        if 'quantity' in data and data['quantity'] > cart_item.product.stock:
-            raise serializers.ValidationError({
-                'quantity': f"Only {cart_item.product.stock} items available in stock"
-            })
-        return data
+    def update(self, instance, validated_data):
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.save()
+        return instance
 
 
 # cart
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_items = CartItemSerializer(many=True)
+    cart_items = CartItemReadSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ['id', 'cart_items', 'total_price']
-        read_only_fields = ['id', 'cart_items', 'total_price']
+        fields = ['id', 'created_at', 'cart_items', 'total_price', 'is_deleted']
+        read_only_fields = fields
 
     def get_total_price(self, obj):
         return obj.total_price
 
 
-class CartCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = ['id']
-        read_only_fields = ['id']
-
-# blog
+######################################
 class BlogCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogCategory
@@ -252,7 +236,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
 class ContactSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactSubmission
-        fields = ['name', 'user','phone', 'email', 'subject', 'message', ]
+        fields = ['name', 'user', 'phone', 'email', 'subject', 'message', ]
         read_only_fields = ['user']
 
     def create(self, validated_data):
@@ -393,8 +377,6 @@ class CourseUpdateSerializer(CourseListCreateSerializer):
             setattr(instance, field, value)
         instance.save()
         return instance
-
-
 
 
 class HomeBannerSerializer(serializers.ModelSerializer):

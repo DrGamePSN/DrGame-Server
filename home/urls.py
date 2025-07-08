@@ -17,16 +17,9 @@ urlpatterns = [
          name='store-product-by-category-detail'),
 
     # ==================== Cart URLs ====================
-    path('cart/', views.CartCreateAPIView.as_view(), name='cart-create'),
-    path('cart/<uuid:id>/', views.CartDetailAPIView.as_view(), name='cart-detail'),
-    path('cart/<uuid:id>/delete/', views.CartDeleteAPIView.as_view(), name='cart-delete'),
-
-    # Cart Items
-    path('cart/<uuid:id>/items/', views.CartItemListAPIView.as_view(), name='cart-item-list'),
-    path('cart/<uuid:id>/items/add/', views.CartItemAddCreateAPIView.as_view(), name='cart-item-create'),
-    path('cart/<uuid:id>/items/<int:pk>/', views.CartItemDetailAPIView.as_view(), name='cart-item-detail'),
-    path('cart/<uuid:id>/items/<int:pk>/update/', views.CartItemUpdateAPIView.as_view(), name='cart-item-update'),
-    path('cart/<uuid:id>/items/<int:pk>/delete/', views.CartItemDeleteAPIView.as_view(), name='cart-item-delete'),
+    path('cart/', views.CartAPIView.as_view(), name='user-cart'),
+    path('cart/add/', views.AddToCartAPIView.as_view(), name='add-to-cart'),
+    path('cart/remove/<int:product_id>/', views.RemoveFromCartAPIView.as_view(), name='remove-from-cart'),
 
     # ==================== Blog URLs ====================
     # Categories

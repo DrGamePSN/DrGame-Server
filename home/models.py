@@ -11,13 +11,15 @@ from storage.models import Product, ProductColor
 
 
 # Shopping
+
 class Cart(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.id)
+        return f'{self.user.phone} cart'
 
     @property
     def total_price(self):
