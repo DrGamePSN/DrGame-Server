@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from payments.models import CourseOrder
-from .models import Cart, CartItem, BlogCategory, BlogPost, ContactUs, AboutUs, ContactSubmission, BlogTag, Course, \
+from .models import Cart, CartItem, BlogPost, ContactUs, AboutUs, ContactSubmission, Course, \
     Video, HomeBanner
 
 
@@ -15,22 +15,10 @@ class CartAdmin(admin.ModelAdmin):
     list_display = ['id', 'cart', 'product', 'quantity', 'is_deleted', 'updated_at', ]
 
 
-@admin.register(BlogCategory)
-class BlogCategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'slug', 'name', 'created_at', 'is_deleted']
-    prepopulated_fields = {'slug': ('name',)}
-
-
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
-    list_display = ['id', 'slug', 'title', 'category', 'author', 'status', 'created_at']
+    list_display = ['id', 'slug', 'title', 'author', 'status', 'created_at']
     prepopulated_fields = {'slug': ('title',)}
-
-
-@admin.register(BlogTag)
-class BlogTagAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'slug']
-    prepopulated_fields = {'slug': ('name',)}
 
 
 @admin.register(AboutUs)
@@ -51,7 +39,7 @@ class ContactUsAdmin(admin.ModelAdmin):
 
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'email','phone', 'subject', 'message_preview', 'user', 'is_deleted']
+    list_display = ['id', 'name', 'email', 'phone', 'subject', 'message_preview', 'user', 'is_deleted']
 
     def message_preview(self, obj):
         return obj.message[:100] + '...' if len(obj.subject) > 10 else obj.message

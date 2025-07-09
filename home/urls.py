@@ -22,19 +22,6 @@ urlpatterns = [
     path('cart/remove/<int:product_id>/', views.RemoveFromCartAPIView.as_view(), name='remove-from-cart'),
 
     # ==================== Blog URLs ====================
-    # Categories
-    path('blog/categories/', views.BlogCategoryListAPIView.as_view(), name='blog-category-list'),
-    path('blog/categories/add/', views.BlogCategoryCreateAPIView.as_view(), name='blog-category-create'),
-    path('blog/categories/<str:slug>/update/', views.BlogCategoryUpdateAPIView.as_view(), name='blog-category-update'),
-    path('blog/categories/<str:slug>/delete/', views.BlogCategoryDeleteAPIView.as_view(), name='blog-category-delete'),
-
-    # tags
-    path('blog/tags/', views.BlogTagListAPIView.as_view(), name='blog-tag-list'),
-    path('blog/tags/add/', views.BlogTagCreateAPIView.as_view(), name='blog-tag-create'),
-    path('blog/tags/<str:slug>/update/', views.BlogTagUpdateAPIView.as_view(), name='blog-tag-update'),
-    path('blog/tags/<str:slug>/delete/', views.BlogTagDeleteAPIView.as_view(), name='blog-tag-delete'),
-
-    # Posts
     path('blog/posts/', views.BlogPostListAPIView.as_view(), name='blog-post-list'),
     path('blog/posts/add/', views.BlogPostCreateAPIView.as_view(), name='blog-post-create'),
     path('blog/posts/<str:slug>/', views.BlogPostRetrieveAPIView.as_view(), name='blog-post-detail'),

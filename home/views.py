@@ -12,12 +12,12 @@ from rest_framework import status
 from accounts.auth import CustomJWTAuthentication
 from storage.models import Game, Product, ProductCategory
 from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
-from .serializers import CartSerializer, BlogCategorySerializer, UpdateBlogPostSerializer, \
-    CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, BlogTagSerializer, \
+from .serializers import CartSerializer, UpdateBlogPostSerializer, \
+    CreateBlogPostSerializer, AboutUsSerializer, ContactUsSerializer, ContactSubmissionSerializer, \
     BlogPostDetailSerializer, BlogPostListSerializer, CourseRetrieveSerializer, \
     CourseListCreateSerializer, CourseUpdateSerializer, VideoSerializer, VideoCreateSerializer, VideoUpdateSerializer, \
     HomeBannerSerializer, CartItemWriteSerializer
-from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Course, \
+from .models import Cart, CartItem, BlogPost, AboutUs, ContactUs, ContactSubmission, Course, \
     Video, HomeBanner
 
 
@@ -209,58 +209,6 @@ class RemoveFromCartAPIView(generics.DestroyAPIView):
                 {"detail": "یک خطا رخ داده است.", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-# blog-category
-
-class BlogCategoryListAPIView(generics.ListAPIView):
-    queryset = BlogCategory.objects.filter(is_deleted=False).all()
-    serializer_class = BlogCategorySerializer
-    filter_backends = [SearchFilter, ]
-    search_fields = ['title']
-    permission_classes = [AllowAny]
-
-
-class BlogCategoryCreateAPIView(generics.CreateAPIView):
-    queryset = BlogCategory.objects.filter(is_deleted=False).all()
-    serializer_class = BlogCategorySerializer
-
-
-class BlogCategoryUpdateAPIView(generics.UpdateAPIView):
-    queryset = BlogCategory.objects.all()
-    serializer_class = BlogCategorySerializer
-    lookup_field = 'slug'
-
-
-class BlogCategoryDeleteAPIView(generics.DestroyAPIView):
-    queryset = BlogCategory.objects.all()
-    serializer_class = BlogCategorySerializer
-    lookup_field = 'slug'
-
-
-# blog tag
-
-class BlogTagListAPIView(generics.ListAPIView):
-    queryset = BlogTag.objects.all()
-    serializer_class = BlogTagSerializer
-    permission_classes = [AllowAny]
-
-
-class BlogTagCreateAPIView(generics.CreateAPIView):
-    queryset = BlogTag.objects.all()
-    serializer_class = BlogTagSerializer
-
-
-class BlogTagUpdateAPIView(generics.UpdateAPIView):
-    queryset = BlogTag.objects.all()
-    serializer_class = BlogTagSerializer
-    lookup_field = 'slug'
-
-
-class BlogTagDeleteAPIView(generics.DestroyAPIView):
-    queryset = BlogTag.objects.all()
-    serializer_class = BlogTagSerializer
-    lookup_field = 'slug'
 
 
 # blog-post

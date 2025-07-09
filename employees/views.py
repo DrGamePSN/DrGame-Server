@@ -1,5 +1,3 @@
-from importlib.metadata import pass_none
-
 from django.db.models import Q, Count
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -150,7 +148,7 @@ class EmployeePanelGetNewSonyAccount(generics.RetrieveAPIView):
         })
 
 
-# class MakePayMentLinkForSOnyAccount(generics.RetrieveAPIView):
+# class MakePaymentLinkForSonyAccount(generics.RetrieveAPIView):
 #     pass
 
 class EmployeePanelOwnedTransactionList(generics.ListAPIView):

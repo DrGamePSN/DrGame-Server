@@ -32,6 +32,7 @@ class IsSuperuserOrHasRole(BasePermission):
                 hasattr(request.user, 'main_manager'))
 
 
+# permission decorator
 def restrict_access(*user_boolean_fields):
     def decorator(view_class):
         original_initial = view_class.initial

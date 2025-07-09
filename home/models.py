@@ -48,44 +48,6 @@ class CartItem(models.Model):
 
 # Blog
 
-class BlogCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="نام دسته‌بندی")
-    slug = models.SlugField(max_length=150, unique=True, allow_unicode=True, verbose_name="اسلاگ")
-    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
-
-    is_deleted = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Category"
-        verbose_name_plural = "Categories"
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-
-class BlogTag(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name="نام تگ")
-    slug = models.SlugField(max_length=100, unique=True, allow_unicode=True, verbose_name="اسلاگ")
-
-    class Meta:
-        verbose_name = "Tag"
-        verbose_name_plural = "Tags"
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
 
 class BlogPost(models.Model):
     STATUS_CHOICES = (
@@ -97,9 +59,6 @@ class BlogPost(models.Model):
     slug = models.SlugField(max_length=250, unique=True, allow_unicode=True, verbose_name="اسلاگ")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts',
                                verbose_name="نویسنده")
-    category = models.ForeignKey(BlogCategory, on_delete=models.SET_NULL, null=True, related_name='posts',
-                                 verbose_name="دسته‌بندی")
-    tags = models.ManyToManyField(BlogTag, blank=True, related_name='posts', verbose_name="تگ‌ها")
     content = models.TextField(verbose_name="محتوا")
     featured_image = models.ImageField(upload_to='blog_images/', blank=True, null=True, verbose_name="تصویر شاخص")
     meta_description = models.CharField(max_length=160, blank=True, null=True, verbose_name="توضیحات متا")

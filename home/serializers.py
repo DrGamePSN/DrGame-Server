@@ -2,7 +2,7 @@ from rest_framework import serializers
 from slugify import slugify
 
 from payments.models import CourseOrder
-from .models import Cart, CartItem, BlogCategory, BlogPost, AboutUs, ContactUs, ContactSubmission, BlogTag, Video, \
+from .models import Cart, CartItem, BlogPost, AboutUs, ContactUs, ContactSubmission, Video, \
     Course, HomeBanner
 from storage.models import Product, ProductColor
 
@@ -19,7 +19,7 @@ class ProductCartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['title', 'main_img','color', 'price']
+        fields = ['title', 'main_img', 'color', 'price']
 
 
 class CartItemReadSerializer(serializers.ModelSerializer):
@@ -92,57 +92,11 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 ######################################
-class BlogCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BlogCategory
-        fields = ['id', 'name', 'slug', 'description', 'created_at']
-        read_only_fields = ['slug', 'created_at']
-
-    def create(self, validated_data):
-        blog_category = BlogCategory(**validated_data)
-        blog_category.slug = slugify(blog_category.name, allow_unicode=True)
-        blog_category.save()
-        return blog_category
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.slug = slugify(instance.name, allow_unicode=True)
-        instance.save()
-        return instance
-
-
-class PostBlogCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BlogCategory
-        fields = ['name']
-
-
-class BlogTagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BlogTag
-        fields = ['id', 'name', 'slug']
-        read_only_fields = ['id', 'slug']
-
-    def create(self, validated_data):
-        blog_tag = BlogTag(**validated_data)
-        blog_tag.slug = slugify(blog_tag.name, allow_unicode=True)
-        blog_tag.save()
-        return blog_tag
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.slug = slugify(instance.name, allow_unicode=True)
-        instance.save()
-        return instance
-
 
 class BlogPostListSerializer(serializers.ModelSerializer):
-    category = PostBlogCategorySerializer()
-    tags = BlogTagSerializer(many=True)
-
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'slug', 'category', 'tags',
+        fields = ['id', 'title', 'slug',
                   'featured_image', 'status', 'created_at', 'published_at'
                   ]
         read_only_fields = ['id', 'published_at', 'author', 'slug']
@@ -161,12 +115,10 @@ class CreateBlogPostSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'published_at', 'author']
 
     def create(self, validated_data):
-        tags_data = validated_data.pop('tags', None)
         blog_post = BlogPost(**validated_data)
         blog_post.slug = slugify(blog_post.title, allow_unicode=True)
         blog_post.author = self.context['user']
         blog_post.save()
-        blog_post.tags.set(tags_data)
 
         return blog_post
 
@@ -174,7 +126,7 @@ class CreateBlogPostSerializer(serializers.ModelSerializer):
 class UpdateBlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'author', 'category', 'tags', 'content', 'featured_image', 'meta_description',
+        fields = ['id', 'title', 'author', 'content', 'featured_image', 'meta_description',
                   'status', 'published_at', ]
         read_only_fields = ['id', 'published_at', 'author']
 
