@@ -110,7 +110,7 @@ class BlogPostDetailSerializer(BlogPostListSerializer):
 class CreateBlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'author', 'category', 'tags', 'content', 'featured_image', 'meta_description',
+        fields = ['id', 'title', 'author', 'content', 'featured_image', 'meta_description',
                   'status', 'published_at', ]
         read_only_fields = ['id', 'published_at', 'author']
 

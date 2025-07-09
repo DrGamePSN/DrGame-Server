@@ -214,18 +214,17 @@ class RemoveFromCartAPIView(generics.DestroyAPIView):
 # blog-post
 
 class BlogPostListAPIView(generics.ListAPIView):
-    queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').filter(
+    queryset = BlogPost.objects.select_related('author').filter(
         status='published').all()
     serializer_class = BlogPostListSerializer
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ['title']
-    filterset_fields = ['category']
     ordering_fields = ['created_at']
     permission_classes = [AllowAny]
 
 
 class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
-    queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').filter(
+    queryset = BlogPost.objects.select_related('author').filter(
         status='published').all()
     serializer_class = BlogPostDetailSerializer
     lookup_field = 'slug'
@@ -233,7 +232,7 @@ class BlogPostRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class BlogPostCreateAPIView(generics.CreateAPIView):
-    queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').filter(
+    queryset = BlogPost.objects.select_related('author').filter(
         status='published').all()
     serializer_class = CreateBlogPostSerializer
 
@@ -246,7 +245,7 @@ class BlogPostCreateAPIView(generics.CreateAPIView):
 
 
 class BlogPostUpdateAPIView(generics.UpdateAPIView):
-    queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').all()
+    queryset = BlogPost.objects.select_related('author').all()
     serializer_class = UpdateBlogPostSerializer
     lookup_field = 'slug'
 
@@ -262,41 +261,9 @@ class BlogPostUpdateAPIView(generics.UpdateAPIView):
 
 
 class BlogPostDeleteAPIView(generics.DestroyAPIView):
-    queryset = BlogPost.objects.select_related('category', 'author').prefetch_related('tags').all()
+    queryset = BlogPost.objects.select_related('author').all()
     serializer_class = BlogPostDetailSerializer
     lookup_field = 'slug'
-
-
-# nested urls for blog posts & categories => blog/categories/2/posts
-
-class BlogPostListByCategoryAPIView(generics.ListAPIView):
-    serializer_class = BlogPostListSerializer
-
-    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
-    search_fields = ['title']
-    ordering_fields = ['created_at']
-
-    def get_queryset(self):
-        category_slug = self.kwargs.get('category_slug')
-        return BlogPost.objects.filter(
-            category__slug=category_slug,
-            status='published'
-        ).select_related('category', 'author').prefetch_related('tags').order_by('-created_at')
-
-
-# nested urls for blog posts & categories => blog/categories/2/posts/3
-
-class BlogPostRetrieveByCategoryAPIView(generics.RetrieveAPIView):
-    serializer_class = BlogPostDetailSerializer
-    lookup_field = 'slug'
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        category_slug = self.kwargs.get('category_slug')
-        return BlogPost.objects.filter(
-            category__slug=category_slug,
-            status='published'
-        ).select_related('category', 'author').prefetch_related('tags').order_by('-created_at')
 
 
 # contact us & about us

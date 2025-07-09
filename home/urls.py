@@ -28,12 +28,6 @@ urlpatterns = [
     path('blog/posts/<str:slug>/update/', views.BlogPostUpdateAPIView.as_view(), name='blog-post-update'),
     path('blog/posts/<str:slug>/delete/', views.BlogPostDeleteAPIView.as_view(), name='blog-post-delete'),
 
-    # Nested Category Posts
-    path('blog/categories/<str:category_slug>/posts/', views.BlogPostListByCategoryAPIView.as_view(),
-         name='blog-category-posts-list'),
-    path('blog/categories/<str:category_slug>/posts/<str:slug>/', views.BlogPostRetrieveByCategoryAPIView.as_view(),
-         name='blog-category-posts-detail'),
-
     # ==================== Content Pages ====================
     path('about-us/', views.AboutUsRetrieveAPIView.as_view(), name='about-us'),
     path('about-us/add/', views.AboutUsCreateAPIView.as_view(), name='about-us-create'),
