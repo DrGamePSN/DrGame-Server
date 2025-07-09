@@ -130,11 +130,21 @@ class CartAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
 
-        return Cart.objects.filter(user=self.request.user, is_deleted=False).prefetch_related('cart_items__product__color')
+        return Cart.objects.filter(user=self.request.user, is_deleted=False).prefetch_related(
+            'cart_items__product__color')
 
     def get_object(self):
+        cart = self.get_queryset().first()
+        if not cart:
+            return Cart.objects.create(user=self.request.user)
+        return cart
 
-        return self.get_queryset().first() or Cart.objects.create(user=self.request.user)
+    def get(self, request, *args, **kwargs):
+        cart = self.get_object()
+        if not cart.cart_items.exists():
+            return Response({"detail": "سبد خرید شما خالی است."}, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AddToCartAPIView(generics.CreateAPIView):
@@ -150,7 +160,8 @@ class AddToCartAPIView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data, context={'cart': cart})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"detail": "محصول با موفقیت به سبد خرید اضافه شد.", "data": serializer.data},
+                        status=status.HTTP_201_CREATED)
 
 
 class RemoveFromCartAPIView(generics.DestroyAPIView):
@@ -163,14 +174,21 @@ class RemoveFromCartAPIView(generics.DestroyAPIView):
         cart = Cart.objects.filter(user=request.user, is_deleted=False).first()
         if not cart:
             return Response(
-                {"detail": "No active cart found."},
+                {"detail": "هیچ سبد خرید فعالی پیدا نشد."},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+        product_id = kwargs.get('product_id')
+        if not product_id:
+            return Response(
+                {"detail": "شناسه محصول معتبر نیست."},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
             cart_item = CartItem.objects.get(
                 cart=cart,
-                product_id=kwargs.get('product_id')
+                product_id=product_id
             )
 
             if cart_item.quantity > 1:
@@ -179,12 +197,17 @@ class RemoveFromCartAPIView(generics.DestroyAPIView):
             else:
                 cart_item.delete()
 
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({"detail": "محصول با موفقیت از سبد خرید حذف شد."}, status=status.HTTP_204_NO_CONTENT)
 
         except CartItem.DoesNotExist:
             return Response(
-                {"detail": "Item not found in cart."},
+                {"detail": "محصولی در سبد خرید یافت نشد."},
                 status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": "یک خطا رخ داده است.", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
