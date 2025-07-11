@@ -1,16 +1,54 @@
 from django.urls import path
-
-from employees.views import EmployeePanelAcceptedGameOrderList, EmployeePanelOwnedGameOrderList, \
-    EmployeePanelSonyAccountByOrderGamesView, EmployeePanelSonyAccountList, EmployeePanelGetNewSonyAccount, \
-    EmployeePanelOwnedTransactionList
+from employees import views
 
 urlpatterns = [
-    path('game-order/list/', EmployeePanelAcceptedGameOrderList.as_view(), name='game-order-list'),
-    path('game-order/list/owned/', EmployeePanelOwnedGameOrderList.as_view(), name='owned-game-orders'),
-    path('game-order/list/<int:order_id>/sony-accounts/', EmployeePanelSonyAccountByOrderGamesView.as_view(),
-         name='sony-accounts-by-order-games'),
-    path('sony-accounts/owned/', EmployeePanelSonyAccountList.as_view(), name='sony-accounts'),
-    path('sony-accounts/get-new/', EmployeePanelGetNewSonyAccount.as_view(), name='get-new-sony-account'),
-    path('transactions/owned/', EmployeePanelOwnedTransactionList.as_view(), name='owned-transactions'),
+    # ==================== Personal Views ====================
+    # -------------------- Sony Accounts --------------------
+    path('personal/sony-accounts/', views.EmployeePanelSonyAccountList.as_view(), name='sony-account-list'),
+    path('personal/sony-accounts/<int:pk>/', views.EmployeePanelSonyAccountDetail.as_view(),
+         name='sony-account-detail'),
+    path('personal/sony-accounts/order/<int:order_id>/', views.EmployeePanelSonyAccountByOrderGamesView.as_view(),
+         name='sony-account-by-order-games'),
 
+    # -------------------- Orders --------------------
+    path('personal/game-orders/owned/', views.EmployeePanelOwnedGameOrderList.as_view(), name='owned-game-order-list'),
+
+    # -------------------- Tasks --------------------
+    path('personal/tasks/', views.EmployeePanelTaskList.as_view(), name='task-list'),
+    path('personal/tasks/<int:pk>/', views.EmployeePanelTaskDetail.as_view(), name='task-detail'),
+    path('personal/tasks/add/', views.EmployeePanelAddTask.as_view(), name='task-add'),
+
+    # -------------------- Transactions --------------------
+    path('personal/transactions/owned/', views.EmployeePanelOwnedTransactionList.as_view(),
+         name='owned-transaction-list'),
+    path('personal/transactions/owned/<int:pk>/', views.EmployeePanelOwnedTransactionDetail.as_view(),
+         name='owned-transaction-detail'),
+
+    # ==================== Product Views ====================
+    path('products/', views.EmployeePanelProductList.as_view(), name='product-list'),
+    path('products/<int:pk>/', views.EmployeePanelProductDetail.as_view(), name='product-detail'),
+    path('products/add/', views.EmployeePanelAddProduct.as_view(), name='product-add'),
+
+    # ==================== SonyAccounts Views ====================
+    path('sony-accounts/new/', views.EmployeePanelGetNewSonyAccount.as_view(), name='sony-account-new'),
+
+    # ==================== ProductOrders Views ====================
+    path('product-orders/', views.EmployeePanelProductOrderList.as_view(), name='product-order-list'),
+    path('product-orders/<int:pk>/', views.EmployeePanelProductOrderDetail.as_view(), name='product-order-detail'),
+    path('product-orders/add/', views.EmployeePanelAddOrder.as_view(), name='product-order-add'),
+
+    # ==================== AccountOrders Views ====================
+    path('game-orders/accepted/', views.EmployeePanelAcceptedGameOrderList.as_view(), name='accepted-game-order-list'),
+    path('game-orders/unaccepted/', views.EmployeePanelGameOrderUnacceptedList.as_view(),
+         name='unaccepted-game-order-list'),
+    path('game-orders/<int:pk>/', views.EmployeePanelGameOrderDetail.as_view(), name='game-order-detail'),
+
+    # ==================== RepairOrders Views ====================
+    path('repair-orders/', views.EmployeePanelRepairOrderList.as_view(), name='repair-order-list'),
+    path('repair-orders/<int:pk>/', views.EmployeePanelRepairOrderDetail.as_view(), name='repair-order-detail'),
+
+    # ==================== Transactions Views ====================
+    path('transactions/', views.EmployeePanelTransactionList.as_view(), name='transaction-list'),
+    path('transactions/<int:pk>/', views.EmployeePanelTransactionDetail.as_view(), name='transaction-detail'),
+    path('transactions/add/', views.EmployeePanelAddTransaction.as_view(), name='transaction-add'),
 ]

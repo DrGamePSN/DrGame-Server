@@ -15,6 +15,7 @@ class Employee(models.Model):
     has_commission = models.BooleanField(default=False)
     commission_amount = models.IntegerField(default=0)
     has_access_to_orders = models.BooleanField(default=False)
+    has_access_to_game_order = models.BooleanField(default=False)
     has_access_to_accounts = models.BooleanField(default=False)
     has_access_to_products = models.BooleanField(default=False)
     has_access_to_customers = models.BooleanField(default=False)
@@ -59,7 +60,7 @@ class EmployeeFile(models.Model):
 
 
 class EmployeeTask(models.Model):
-    employee = models.OneToOneField(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, null=True, blank=True)
     type = models.CharField(max_length=20, choices=(
         ('Personal', 'شخصی'),

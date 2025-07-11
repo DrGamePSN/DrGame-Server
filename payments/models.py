@@ -120,7 +120,9 @@ class TransactionType(models.Model):
 
 class Transaction(models.Model):
     payer = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='payer')
+    payer_str = models.CharField(max_length=100, null=True, blank=True)
     receiver = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='receiver')
+    receiver_str = models.CharField(max_length=100, null=True, blank=True)
     transaction_type = models.ForeignKey(TransactionType, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=12, decimal_places=3)
     status = models.CharField(max_length=10, null=True, choices=(
@@ -141,5 +143,12 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.payer and self.payer_str:
+            raise ValueError("فقط یکی از payer یا payer_str باید مقدار داشته باشد.")
+        if self.receiver and self.receiver_str:
+            raise ValueError("فقط یکی از receiver یا receiver_str باید مقدار داشته باشد.")
+
+        super().save(*args, **kwargs)
     def __str__(self):
         return f'{self.transaction_type.title}: {self.amount} - {self.description}'

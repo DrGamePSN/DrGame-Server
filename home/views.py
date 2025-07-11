@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from accounts.auth import CustomJWTAuthentication
+from accounts.permissions import IsCustomer
 from storage.models import Game, Product, ProductCategory
 from storage.serializers import GameSerializer, ProductSerializer, ProductCategorySerializer
 from .serializers import CartSerializer, UpdateBlogPostSerializer, \
@@ -165,7 +166,8 @@ class AddToCartAPIView(generics.CreateAPIView):
 
 
 class RemoveFromCartAPIView(generics.DestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsCustomer]
+    authentication_classes = [CustomJWTAuthentication]
 
     def get_queryset(self):
         return CartItem.objects.filter(cart__user=self.request.user)
