@@ -4,7 +4,7 @@ from employees import views
 urlpatterns = [
     # ==================== Personal Views ====================
     # -------------------- Sony Accounts --------------------
-    path('personal/sony-accounts/', views.EmployeePanelSonyAccountList.as_view(), name='sony-account-list'),
+    path('personal/sony-accounts/', views.EmployeePanelOwnedSonyAccountList.as_view(), name='owned-sony-account-list'),
     path('personal/sony-accounts/<int:pk>/', views.EmployeePanelSonyAccountDetail.as_view(),
          name='sony-account-detail'),
     path('personal/sony-accounts/order/<int:order_id>/', views.EmployeePanelSonyAccountByOrderGamesView.as_view(),
@@ -31,6 +31,7 @@ urlpatterns = [
 
     # ==================== SonyAccounts Views ====================
     path('sony-accounts/new/', views.EmployeePanelGetNewSonyAccount.as_view(), name='sony-account-new'),
+    path('sony-accounts/', views.EmployeePanelSonyAccountList.as_view(), name='sony-account-list'),
 
     # ==================== ProductOrders Views ====================
     path('product-orders/', views.EmployeePanelProductOrderList.as_view(), name='product-order-list'),

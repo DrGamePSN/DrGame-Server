@@ -31,10 +31,18 @@ class EmployeeSonyAccountMatchedSerializer(SoftDeleteSerializerMixin, serializer
 
 
 class EmployeeSonyAccountSerializer(SoftDeleteSerializerMixin, serializers.ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    games = serializers.SlugRelatedField(many=True, read_only=True, slug_field='title')
+
     class Meta:
         model = SonyAccount
         fields = "__all__"
         read_only_fields = ['is_deleted', 'created_at', 'updated_at']
+
+    def get_employee(self, obj):
+        if obj.employee:
+            return f"{obj.employee.first_name} {obj.employee.last_name}"
+        return None
 
 
 class EmployeeTransactionSerializer(SoftDeleteSerializerMixin, serializers.ModelSerializer):
@@ -95,6 +103,9 @@ class EmployeeTaskSerializer(SoftDeleteSerializerMixin, serializers.ModelSeriali
 
 
 class EmployeeProductOrderSerializer(SoftDeleteSerializerMixin, serializers.ModelSerializer):
+    order_type = serializers.SlugRelatedField(read_only=True, slug_field='title')
+    customer = serializers.SlugRelatedField(read_only=True, slug_field='full_name')
+
     class Meta:
         model = Order
         fields = "__all__"

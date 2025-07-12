@@ -19,7 +19,7 @@ from storage.models import SonyAccount, SonyAccountGame, Product
 
 # ==================== Personal Views ====================
 # -------------------- sony-accounts --------------------
-class EmployeePanelSonyAccountList(generics.ListAPIView):
+class EmployeePanelOwnedSonyAccountList(generics.ListAPIView):
     serializer_class = EmployeeSonyAccountSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
@@ -233,6 +233,13 @@ class EmployeePanelGetNewSonyAccount(generics.RetrieveAPIView):
             "username": serializer.data["username"],
             "password": serializer.data["password"]
         })
+
+
+class EmployeePanelSonyAccountList(generics.ListAPIView):
+    queryset = SonyAccount.objects.filter(is_deleted=False)
+    serializer_class = EmployeeSonyAccountSerializer
+    permission_classes = [IsEmployee | IsMainManager]
+    authentication_classes = [CustomJWTAuthentication]
 
 
 # ==================== ProductOrders Views ====================
