@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from django.db import transaction as db_transaction
 from accounts.auth import CustomJWTAuthentication
-from accounts.permissions import IsEmployee, restrict_access
+from accounts.permissions import IsEmployee, restrict_access, IsMainManager
 from employees.filters import EmployeeTaskFilter
 from employees.models import EmployeeTask
 from employees.serializers import EmployeeGameSerializer, EmployeeGameOrderSerializer, \
@@ -171,7 +171,7 @@ class EmployeePanelOwnedTransactionDetail(generics.RetrieveAPIView):
 class EmployeePanelProductList(generics.ListAPIView):
     serializer_class = EmployeeProductSerializer
     queryset = Product.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -179,7 +179,7 @@ class EmployeePanelProductList(generics.ListAPIView):
 class EmployeePanelProductDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeProductSerializer
     queryset = Product.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -187,7 +187,7 @@ class EmployeePanelProductDetail(generics.RetrieveUpdateDestroyAPIView):
 class EmployeePanelAddProduct(generics.CreateAPIView):
     serializer_class = EmployeeProductSerializer
     queryset = Product.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -196,7 +196,7 @@ class EmployeePanelAddProduct(generics.CreateAPIView):
 class EmployeePanelGetNewSonyAccount(generics.RetrieveAPIView):
     queryset = SonyAccount.objects.filter(is_owned=False, is_deleted=False)
     serializer_class = EmployeeSonyAccountSerializer
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
     def get_object(self):
@@ -240,7 +240,7 @@ class EmployeePanelGetNewSonyAccount(generics.RetrieveAPIView):
 class EmployeePanelProductOrderList(generics.ListAPIView):
     serializer_class = EmployeeProductOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -248,7 +248,7 @@ class EmployeePanelProductOrderList(generics.ListAPIView):
 class EmployeePanelProductOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeProductOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -256,7 +256,7 @@ class EmployeePanelProductOrderDetail(generics.RetrieveUpdateDestroyAPIView):
 class EmployeePanelAddOrder(generics.CreateAPIView):
     serializer_class = EmployeeProductOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -265,14 +265,14 @@ class EmployeePanelAddOrder(generics.CreateAPIView):
 class EmployeePanelGameOrderList(generics.ListAPIView):
     queryset = GameOrder.objects.filter(is_deleted=False)
     serializer_class = EmployeeGameOrderSerializer
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
 @restrict_access('has_access_to_game_order')
 class EmployeePanelGameOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeGameSerializer
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
     lookup_field = 'pk'
 
@@ -292,7 +292,7 @@ class EmployeePanelGameOrderDetail(generics.RetrieveUpdateDestroyAPIView):
 class EmployeePanelRepairOrderList(generics.ListAPIView):
     serializer_class = EmployeeRepairOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -300,7 +300,7 @@ class EmployeePanelRepairOrderList(generics.ListAPIView):
 class EmployeePanelRepairOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeRepairOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -308,7 +308,7 @@ class EmployeePanelRepairOrderDetail(generics.RetrieveUpdateDestroyAPIView):
 class EmployeePanelAddRepairOrder(generics.CreateAPIView):
     serializer_class = EmployeeRepairOrderSerializer
     queryset = Order.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -317,7 +317,7 @@ class EmployeePanelAddRepairOrder(generics.CreateAPIView):
 class EmployeePanelTransactionList(generics.ListAPIView):
     serializer_class = EmployeeTransactionSerializer
     queryset = Transaction.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
@@ -325,14 +325,14 @@ class EmployeePanelTransactionList(generics.ListAPIView):
 class EmployeePanelTransactionDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeTransactionSerializer
     queryset = Transaction.objects.filter(is_deleted=False)
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
 
 @restrict_access('has_access_to_transactions')
 class EmployeePanelAddTransaction(generics.CreateAPIView):
     serializer_class = EmployeeTransactionSerializer
-    permission_classes = [IsEmployee]
+    permission_classes = [IsEmployee | IsMainManager]
     authentication_classes = [CustomJWTAuthentication]
 
     def perform_create(self, serializer):

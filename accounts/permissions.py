@@ -19,7 +19,7 @@ class IsEmployee(BasePermission):
 
 class IsMainManager(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and hasattr(request.user, 'main_manger')
+        return request.user.is_authenticated and hasattr(request.user, 'main_manager')
 
 
 class IsSuperuserOrHasRole(BasePermission):
@@ -40,19 +40,23 @@ def restrict_access(*user_boolean_fields):
         @wraps(view_class)
         def new_initial(self, request, *args, **kwargs):
             user = request.user
-            employee = request.user.employee
             if not user or not user.is_authenticated:
                 raise PermissionDenied("Access denied: user not authenticated.")
+            if hasattr(user, 'main_manager'):
+                print("hello")
+                return original_initial(self, request, *args, **kwargs)
+            else:
+                employee = request.user.employee
+                print("hello 2")
+                for field in user_boolean_fields:
+                    value = getattr(employee, field, None)
+                    print(f"{field}: {value}")
 
-            for field in user_boolean_fields:
-                value = getattr(employee, field, None)
-                print(f"{field}: {value}")
+                for field in user_boolean_fields:
+                    if not getattr(employee, field, False):
+                        raise PermissionDenied(f"Access denied: {field} is not True.")
 
-            for field in user_boolean_fields:
-                if not getattr(employee, field, False):
-                    raise PermissionDenied(f"Access denied: {field} is not True.")
-
-            return original_initial(self, request, *args, **kwargs)
+                return original_initial(self, request, *args, **kwargs)
 
         view_class.initial = new_initial
         return view_class
