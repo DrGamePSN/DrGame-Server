@@ -105,6 +105,7 @@ class EmployeeTaskSerializer(SoftDeleteSerializerMixin, serializers.ModelSeriali
 class EmployeeProductOrderSerializer(SoftDeleteSerializerMixin, serializers.ModelSerializer):
     order_type = serializers.SlugRelatedField(read_only=True, slug_field='title')
     customer = serializers.SlugRelatedField(read_only=True, slug_field='full_name')
+    product = EmployeeProductSerializer()
 
     class Meta:
         model = Order
