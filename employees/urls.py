@@ -38,9 +38,7 @@ urlpatterns = [
     path('product-orders/add/', views.EmployeePanelAddOrder.as_view(), name='product-order-add'),
 
     # ==================== AccountOrders Views ====================
-    path('game-orders/accepted/', views.EmployeePanelAcceptedGameOrderList.as_view(), name='accepted-game-order-list'),
-    path('game-orders/unaccepted/', views.EmployeePanelGameOrderUnacceptedList.as_view(),
-         name='unaccepted-game-order-list'),
+    path('game-orders/', views.EmployeePanelGameOrderList.as_view(), name='accepted-game-order-list'),
     path('game-orders/<int:pk>/', views.EmployeePanelGameOrderDetail.as_view(), name='game-order-detail'),
 
     # ==================== RepairOrders Views ====================

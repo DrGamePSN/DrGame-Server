@@ -262,23 +262,15 @@ class EmployeePanelAddOrder(generics.CreateAPIView):
 
 # ==================== AccountOrders Views ====================
 @restrict_access('has_access_to_game_order')
-class EmployeePanelAcceptedGameOrderList(generics.ListAPIView):
-    queryset = GameOrder.objects.filter(status='in_progress')
+class EmployeePanelGameOrderList(generics.ListAPIView):
+    queryset = GameOrder.objects.filter(is_deleted=False)
     serializer_class = EmployeeGameOrderSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
 
 
 @restrict_access('has_access_to_game_order')
-class EmployeePanelGameOrderUnacceptedList(generics.ListAPIView):
-    queryset = GameOrder.objects.filter(status='payed')
-    serializer_class = EmployeeGameOrderSerializer
-    permission_classes = [IsEmployee]
-    authentication_classes = [CustomJWTAuthentication]
-
-
-@restrict_access('has_access_to_game_order')
-class EmployeePanelGameOrderDetail(generics.RetrieveAPIView):
+class EmployeePanelGameOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmployeeGameSerializer
     permission_classes = [IsEmployee]
     authentication_classes = [CustomJWTAuthentication]
